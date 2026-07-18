@@ -2,7 +2,9 @@ import { useState } from 'react'
 import {
   Activity,
   Check,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   Database,
   FileSpreadsheet,
   FileText,
@@ -70,6 +72,7 @@ function shortName(name: string) {
 
 export function MethodStudio({ sources, cases, onAdd, onSource }: MethodStudioProps) {
   const [selectedFinding, setSelectedFinding] = useState('F-01')
+  const [expanded, setExpanded] = useState(true)
   const [composerOpen, setComposerOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState(categories[0])
@@ -113,11 +116,17 @@ export function MethodStudio({ sources, cases, onAdd, onSource }: MethodStudioPr
         <div>
           <span><Route size={10} /> Routes</span>
         </div>
-        <button type="button" className="add-case-button" onClick={() => setComposerOpen(true)}>
-          <Plus size={14} /> Add case
-        </button>
+        <div className="router-heading-actions">
+          <button type="button" className="router-toggle" onClick={() => setExpanded((value) => !value)}>
+            {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />} {expanded ? 'Hide details' : 'Show details'}
+          </button>
+          <button type="button" className="add-case-button" onClick={() => setComposerOpen(true)}>
+            <Plus size={14} /> Add case
+          </button>
+        </div>
       </div>
 
+      {expanded && <>
       <div className="router-lanes">
         {lanes.map((lane, index) => {
           const Icon = lane.icon
@@ -158,6 +167,7 @@ export function MethodStudio({ sources, cases, onAdd, onSource }: MethodStudioPr
           <footer><Check size={11} /> {selectedCase.sources.length} dossier passages resolved</footer>
         </article>
       </div>
+      </>}
 
       {cases.length > 0 && (
         <div className="manual-case-list">

@@ -4,6 +4,8 @@ import {
   ArrowRight,
   BadgeCheck,
   Check,
+  ChevronDown,
+  ChevronUp,
   CircleAlert,
   FileSearch,
   FileSpreadsheet,
@@ -274,7 +276,7 @@ const proofClaims: ProofClaim[] = [
   },
   {
     id: 'X-05',
-    category: 'REJECTED HYPOTHESIS',
+    category: 'REJECTED',
     title: '€86,500 accrual offsets the December invoices',
     amount: '€86,500',
     decision: 'HOLD',
@@ -344,6 +346,7 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
   const [runNumber, setRunNumber] = useState(1)
   const [manualClaims, setManualClaims] = useState<ManualClaim[]>([])
   const [composerOpen, setComposerOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(true)
 
   const selectedClaim = proofClaims.find((claim) => claim.id === selectedClaimId) ?? proofClaims[0]
   const activeGate = selectedClaim.gates.find((gate) => gate.id === activeGateId) ?? selectedClaim.gates[0]
@@ -375,7 +378,12 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
     <section className="claim-compiler" aria-label="Claim compiler">
       <header className="compiler-header">
         <strong>Claims</strong>
-        <button type="button" className="compiler-add" onClick={() => setComposerOpen(true)}><Plus size={14} /> Add case</button>
+        <div className="compiler-header-actions">
+          <button type="button" className="compiler-toggle" onClick={() => setDetailsOpen((value) => !value)}>
+            {detailsOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />} {detailsOpen ? 'Hide details' : 'Show details'}
+          </button>
+          <button type="button" className="compiler-add" onClick={() => setComposerOpen(true)}><Plus size={14} /> Add case</button>
+        </div>
       </header>
 
       <div className="claim-switcher" role="tablist" aria-label="Compiled claims">
@@ -409,6 +417,7 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
         </button>
       </div>
 
+      {detailsOpen && <>
       <div className={`gate-pipeline ${compileState === 'running' ? 'running' : ''}`} aria-label="Typed proof gates">
         {selectedClaim.gates.map((gate, index) => {
           const Icon = gateMeta[gate.id].icon
@@ -470,6 +479,7 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
           </div>
         </aside>
       </div>
+      </>}
 
       {manualClaims.length > 0 && (
         <section className="manual-claims" aria-label="Manual claim drafts">

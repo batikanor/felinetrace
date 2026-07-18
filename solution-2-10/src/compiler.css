@@ -1361,3 +1361,96 @@
     font-size: 8px;
   }
 }
+
+.compiler-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compiler-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  gap: 5px;
+  padding: 0 10px;
+  color: #554773;
+  background: #fff;
+  border: 1px solid #cfc6dc;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+@media (min-width: 801px) {
+  .compiler-header { min-height: 62px; }
+  .compiler-header > strong { font-size: 17px; }
+
+  .compiler-toggle,
+  .compiler-add {
+    height: 42px;
+    padding-inline: 16px;
+    font-size: 12px;
+  }
+
+  .claim-switcher > button {
+    min-height: 84px;
+    padding: 13px 15px;
+  }
+
+  .claim-switcher small { font-size: 9px; }
+  .claim-switcher strong { font-size: 13px; }
+  .claim-switcher > button > b { font-size: 14px; }
+  .claim-switcher > button > i { font-size: 9px; }
+
+  .compiler-toolbar { padding-block: 15px 13px; }
+  .compiler-toolbar strong { font-size: 15px; }
+  .compile-state { font-size: 11px; }
+
+  .compiler-toolbar > button {
+    height: 42px;
+    font-size: 11px;
+  }
+
+  .proof-gate {
+    min-height: 96px;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    padding: 13px;
+  }
+
+  .gate-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .proof-gate small { font-size: 9px; }
+  .proof-gate strong { font-size: 13px; }
+  .proof-gate > i { font-size: 8px; }
+
+  .inspector-heading strong { font-size: 13px; }
+
+  .proof-atom {
+    min-height: 82px;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 11px;
+    padding: 12px;
+  }
+
+  .atom-status {
+    width: 32px;
+    height: 32px;
+  }
+
+  .proof-atom small { font-size: 9px; }
+  .proof-atom strong { font-size: 13px; }
+  .proof-atom em,
+  .proof-atom > b { font-size: 10px; }
+
+  .certificate-copy small { font-size: 9px; }
+  .certificate-copy strong { font-size: 18px; }
+  .certificate-copy p { font-size: 11px; }
+  .certificate-metrics small { font-size: 9px; }
+  .certificate-metrics b { font-size: 11px; }
+}

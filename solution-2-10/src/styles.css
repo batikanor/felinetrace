@@ -1817,3 +1817,22 @@ textarea:focus-visible,
     font-size: 12px;
   }
 }
+
+@media (min-width: 801px) {
+  .document-title strong { font-size: 14px; }
+  .document-title span { font-size: 11px; }
+
+  .primary-tabs button,
+  .quiet-button,
+  .analyze-button {
+    height: 38px;
+    font-size: 12px;
+  }
+
+  .document-status-bar {
+    height: 52px;
+    font-size: 13px;
+  }
+
+  .document-status-bar button { font-size: 13px; }
+}
