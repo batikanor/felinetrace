@@ -1,6 +1,6 @@
 .setup-page {
   min-height: calc(100vh - 58px);
-  padding: 18px max(16px, calc((100vw - 1080px) / 2)) 42px;
+  padding: 22px max(24px, calc((100vw - 1400px) / 2)) 48px;
   color: #213128;
   background: #f3f5f2;
 }
@@ -395,5 +395,172 @@
   .runtime-list,
   .integration-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 801px) {
+  .setup-hero {
+    padding: 15px 18px 0;
+  }
+
+  .setup-hero h1 {
+    font-size: 22px;
+  }
+
+  .setup-actions button {
+    height: 34px;
+    padding-inline: 12px;
+    font-size: 9px;
+  }
+
+  .setup-readiness {
+    margin: 15px -18px 0;
+  }
+
+  .setup-readiness article {
+    min-height: 64px;
+    grid-template-columns: 29px minmax(0, 1fr);
+    gap: 9px;
+    padding: 10px 17px;
+  }
+
+  .status-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .setup-readiness strong {
+    font-size: 9px;
+  }
+
+  .setup-readiness small {
+    margin-top: 3px;
+    font-size: 7px;
+  }
+
+  .runtime-card,
+  .integration-section {
+    padding: 16px;
+  }
+
+  .runtime-card > header {
+    grid-template-columns: 34px 1fr auto;
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+
+  .runtime-card > header > span {
+    width: 33px;
+    height: 33px;
+  }
+
+  .runtime-card h2,
+  .integration-section h2 {
+    font-size: 13px;
+  }
+
+  .runtime-card > header > button {
+    height: 32px;
+    padding-inline: 10px;
+    font-size: 8px;
+  }
+
+  .runtime-list {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .runtime-row {
+    min-height: 56px;
+    grid-template-columns: 29px minmax(0, 1fr);
+    gap: 9px;
+    padding: 8px 10px;
+  }
+
+  .runtime-row strong,
+  .integration-result strong {
+    font-size: 8.5px;
+  }
+
+  .runtime-row small,
+  .integration-result small {
+    margin-top: 3px;
+    font-size: 7px;
+  }
+
+  .integration-section > header {
+    margin-bottom: 12px;
+  }
+
+  .integration-grid {
+    gap: 10px;
+  }
+
+  .integration-card > header {
+    grid-template-columns: 38px minmax(0, 1fr) 28px;
+    gap: 9px;
+    padding: 11px;
+  }
+
+  .integration-card > header > span:first-child {
+    width: 37px;
+    height: 37px;
+  }
+
+  .integration-card h3 {
+    font-size: 10px;
+  }
+
+  .integration-card header p,
+  .integration-card > label {
+    font-size: 7px;
+  }
+
+  .integration-card > label {
+    margin: 11px 11px 5px;
+  }
+
+  .endpoint-control {
+    gap: 6px;
+    padding: 0 11px;
+  }
+
+  .endpoint-control input,
+  .endpoint-control button {
+    height: 36px;
+    font-size: 7.5px;
+  }
+
+  .endpoint-control input {
+    padding-inline: 10px;
+  }
+
+  .endpoint-control button {
+    padding-inline: 11px;
+  }
+
+  .integration-result {
+    min-height: 50px;
+    grid-template-columns: 29px minmax(0, 1fr);
+    gap: 9px;
+    margin: 9px 11px;
+    padding: 7px;
+  }
+
+  .integration-card details {
+    margin: 0 11px 11px;
+    padding-top: 8px;
+  }
+
+  .integration-card summary {
+    font-size: 8px;
+  }
+
+  .integration-card details ol {
+    font-size: 7.5px;
+  }
+
+  .integration-card details code {
+    font-size: 6.5px;
   }
 }

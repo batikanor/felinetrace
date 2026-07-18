@@ -106,7 +106,7 @@ function App() {
   })
   const [rightTab, setRightTab] = useState<'findings' | 'comments'>('findings')
   const [view, setView] = useState<'report' | 'setup'>('report')
-  const [panelOpen, setPanelOpen] = useState(() => window.innerWidth > 800)
+  const [panelOpen, setPanelOpen] = useState(false)
   const [expandedFinding, setExpandedFinding] = useState('F-01')
   const [activeBundle, setActiveBundle] = useState('F-01')
   const [sourceWindows, setSourceWindows] = useState<OpenSourceWindow[]>([])
@@ -238,7 +238,7 @@ function App() {
         <button type="button" title="More" onClick={() => notify('Document options')}><MoreHorizontal size={17} /></button>
       </div>
 
-      <main className="workspace">
+      <main className={`workspace ${panelOpen ? 'panel-open' : ''}`}>
         <section className="document-workspace">
           <div className="document-status-bar">
             <span><FileCheck2 size={14} /> 35 dossier files</span>

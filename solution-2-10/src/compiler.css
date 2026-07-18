@@ -1171,3 +1171,193 @@
     border-right: 0;
   }
 }
+
+/* Spacious desktop compiler */
+@media (min-width: 801px) {
+  .claim-compiler {
+    width: min(1400px, calc(100% - 48px));
+    margin-bottom: 16px;
+    border-radius: 12px;
+  }
+
+  .compiler-header {
+    min-height: 50px;
+    padding: 8px 13px 8px 16px;
+  }
+
+  .compiler-header > strong {
+    font-size: 13px;
+  }
+
+  .compiler-add {
+    min-width: 108px;
+    height: 34px;
+    font-size: 9px;
+  }
+
+  .claim-switcher {
+    gap: 8px;
+    padding: 12px 15px;
+  }
+
+  .claim-switcher > button {
+    min-height: 68px;
+    gap: 6px 8px;
+    padding: 10px 12px;
+  }
+
+  .claim-switcher small {
+    font-size: 7px;
+  }
+
+  .claim-switcher strong {
+    font-size: 10px;
+  }
+
+  .claim-switcher > button > b {
+    font-size: 11px;
+  }
+
+  .claim-switcher > button > i {
+    font-size: 7px;
+  }
+
+  .compiler-toolbar {
+    gap: 12px;
+    padding: 12px 15px 10px;
+  }
+
+  .compiler-toolbar strong {
+    font-size: 11px;
+  }
+
+  .compile-state {
+    padding: 7px 9px;
+    font-size: 8px;
+  }
+
+  .compiler-toolbar > button {
+    height: 34px;
+    padding-inline: 12px;
+    font-size: 8px;
+  }
+
+  .gate-pipeline {
+    padding: 0 15px 13px;
+  }
+
+  .gate-wrap {
+    flex-basis: 210px;
+  }
+
+  .proof-gate {
+    min-height: 78px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .gate-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .proof-gate small {
+    font-size: 6.5px;
+  }
+
+  .proof-gate strong {
+    margin-top: 4px;
+    font-size: 9px;
+  }
+
+  .proof-gate > i {
+    top: 6px;
+    right: 7px;
+    font-size: 6px;
+  }
+
+  .compiler-inspector {
+    grid-template-columns: minmax(0, 1.5fr) minmax(330px, 0.5fr);
+    gap: 12px;
+    padding: 14px 15px 15px;
+  }
+
+  .atom-panel,
+  .proof-certificate {
+    padding: 13px;
+    border-radius: 9px;
+  }
+
+  .inspector-heading {
+    margin-bottom: 10px;
+  }
+
+  .inspector-heading strong {
+    font-size: 10px;
+  }
+
+  .proof-atoms {
+    gap: 8px;
+  }
+
+  .proof-atom {
+    min-height: 64px;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 9px;
+  }
+
+  .atom-status {
+    width: 26px;
+    height: 26px;
+  }
+
+  .proof-atom small {
+    font-size: 6.5px;
+  }
+
+  .proof-atom strong {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+
+  .proof-atom em,
+  .proof-atom > b {
+    font-size: 7px;
+  }
+
+  .proof-certificate {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .certificate-seal {
+    width: 42px;
+    height: 42px;
+  }
+
+  .certificate-copy small {
+    font-size: 6.5px;
+  }
+
+  .certificate-copy strong {
+    font-size: 14px;
+  }
+
+  .certificate-copy p {
+    font-size: 8px;
+  }
+
+  .certificate-metrics span {
+    padding: 8px;
+  }
+
+  .certificate-metrics small {
+    font-size: 6px;
+  }
+
+  .certificate-metrics b {
+    font-size: 8px;
+  }
+}
