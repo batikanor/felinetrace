@@ -34,11 +34,11 @@ export type RuntimeStatus = {
   checkedAt: string
 }
 
-const endpointStorageKey = 'trace.investigation.endpoint-urls.v3'
+const endpointStorageKey = 'trace.investigation.endpoint-urls.v4'
 
 export const defaultEndpointUrls: EndpointUrls = {
   cognee: 'http://127.0.0.1:43110/health',
-  tavily: 'http://127.0.0.1:43102/health',
+  tavily: 'http://127.0.0.1:8787/health',
   codex: 'http://127.0.0.1:4010/health',
 }
 

@@ -178,7 +178,7 @@ export function SetupPage({ controller, onBack, onNotice }: SetupPageProps) {
           </details>
           <details>
             <summary>Tavily · official-record proxy</summary>
-            <p>Create a Tavily account and use free credits. Put <code>TAVILY_API_KEY</code> in server environment only. The proxy can call <code>/usage</code> server-side and return sanitized health; focused official-domain searches remain corroboration only.</p>
+            <p>Run <code>services/tavily-proxy/start.sh</code>. The local proxy loads its ignored key file and returns sanitized health; focused official-domain searches remain corroboration only.</p>
           </details>
           <details>
             <summary>Codex · CLI vs reviewer sidecar</summary>

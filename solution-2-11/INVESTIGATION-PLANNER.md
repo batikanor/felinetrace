@@ -88,10 +88,10 @@ Codex CLI installation/authentication and reviewer-sidecar readiness are distinc
 
 ## Server configuration
 
-Copy `.env.example` to `.env.local` only when configuring optional services. Keep `TAVILY_API_KEY` on the server; local Cognee needs no Cognee credential, and there are no browser key inputs or `VITE_` secret variables.
+Tavily reads its ignored key from `services/tavily-proxy/.env.local`; local Cognee needs no Cognee credential, and there are no browser key inputs or `VITE_` secret variables.
 
 - **Cognee local:** run `services/cognee-local/start.sh`; Ollama supplies the LLM and embeddings while SQLite, LanceDB, and Kuzu persist locally.
-- **Tavily:** place the key on the proxy server. The proxy may check usage server-side and return only `usageChecked`.
+- **Tavily:** run `services/tavily-proxy/start.sh`. It loads the local key automatically, checks usage server-side, and returns only `usageChecked`.
 - **Codex:** run `services/codex-reviewer/start.sh`; it reuses the CLI's ChatGPT sign-in and enforces ephemeral read-only structured reviews.
 
 The development status route invokes only `codex --version` and `codex login status` with short timeouts. Reviews go through the separate loopback sidecar.

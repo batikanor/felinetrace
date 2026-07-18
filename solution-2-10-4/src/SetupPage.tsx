@@ -105,9 +105,9 @@ const integrations: IntegrationSpec[] = [
     icon: Globe2,
     contract: '{ service: "tavily-proxy", ok: true, keyConfigured: true, usageCheck: true }',
     steps: [
-      'Create a Tavily account and API key; free credits are sufficient for the demo path.',
-      'Set TAVILY_API_KEY on the proxy server, never in a browser variable.',
-      'Have the proxy validate /usage server-side and return only this sanitized contract.',
+      'Run services/tavily-proxy/start.sh on this machine.',
+      'The proxy loads its ignored local key automatically.',
+      'Health validates /usage and returns only this sanitized contract.',
     ],
     validate: (payload) => {
       if (!isObject(payload)) return { ok: false, detail: 'Expected a JSON object' }

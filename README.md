@@ -57,3 +57,7 @@ Cognee is self-hosted through [`services/cognee-local`](./services/cognee-local)
 The loopback sidecar in [`services/codex-reviewer`](./services/codex-reviewer) reuses the local Codex CLI ChatGPT sign-in. Health checks never invoke an agent; review requests run ephemerally in a read-only sandbox with structured output validation.
 
 See [UX-VARIANTS.md](./UX-VARIANTS.md) for this interface comparison, [METHODS.md](./METHODS.md) for the detection approaches, [RANKING.md](./RANKING.md) for the winning-chance assessment, [SETUP.md](./SETUP.md) for onboarding, and [RESEARCH.md](./RESEARCH.md) for the Cognee, Tavily, public-source, and Codex guidance.
+
+## Local Tavily proxy
+
+`services/tavily-proxy/start.sh` loads the ignored local key, validates it through Tavily `/usage`, and exposes sanitized loopback-only health and search endpoints on port `8787`.

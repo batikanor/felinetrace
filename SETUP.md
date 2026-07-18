@@ -9,7 +9,7 @@ Both top variants run as complete replay demos without an account, API key, or e
 | PlateJS report and sample dossier | Ready | Editing, citations, sources, findings, and replayed method controls work locally. |
 | Codex CLI | Installed | `codex-cli 0.145.0-alpha.18` is available. |
 | Codex reviewer | Local | ChatGPT sign-in and the loopback read-only reviewer sidecar are ready. |
-| Tavily | Not configured | No `TAVILY_API_KEY` is present. The replay demo still works. |
+| Tavily | Local ready | The ignored local proxy configuration is loaded automatically. |
 | Cognee | Local | Docker-hosted Cognee uses local Ollama models and local SQLite/LanceDB/Kuzu stores. |
 | OpenAI Platform API | Not configured | Not required for the current Codex login path. |
 
@@ -17,9 +17,9 @@ Both top variants run as complete replay demos without an account, API key, or e
 
 ### Tavily
 
-Create a free Tavily account and API key. Tavily currently documents 1,000 free monthly credits without requiring a card. Store `TAVILY_API_KEY` only in the local server environment. The browser must call our adapter, never Tavily directly.
+Store `TAVILY_API_KEY` only in `services/tavily-proxy/.env.local`. The browser calls our loopback proxy and never receives the key.
 
-The adapter should validate the key with Tavily's server-side `/usage` endpoint and return only a sanitized readiness response to the Setup page.
+Run `services/tavily-proxy/start.sh`. It validates the key through Tavily's server-side `/usage` endpoint and returns only a sanitized readiness response to the Setup page.
 
 Sources: [Tavily quickstart](https://docs.tavily.com/documentation/quickstart), [API authentication](https://docs.tavily.com/documentation/api-reference/introduction), [key management](https://docs.tavily.com/documentation/best-practices/api-key-management).
 

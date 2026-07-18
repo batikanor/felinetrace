@@ -65,7 +65,7 @@ Cognee runs only on loopback through `services/cognee-local`. Ollama supplies bo
 }
 ```
 
-Create the account/key outside this app, set `TAVILY_API_KEY` on the proxy server, and validate it server-side with a low-cost usage check. Return no key, token fragment, account email, or raw vendor response.
+Run `services/tavily-proxy/start.sh`. It loads the ignored local key, validates it with the server-side `/usage` check, and returns no key, token fragment, account email, or raw vendor response.
 
 ### Codex reviewer sidecar
 
