@@ -64,7 +64,8 @@
   gap: 6px;
 }
 
-.dataset-badge {
+.dataset-badge,
+.local-cognee-badge {
   display: grid;
   grid-template-columns: 18px auto;
   grid-template-rows: auto auto;
@@ -77,23 +78,40 @@
   border-radius: 7px;
 }
 
-.dataset-badge svg {
+.dataset-badge svg,
+.local-cognee-badge svg {
   grid-row: 1 / 3;
 }
 
 .dataset-badge b,
-.dataset-badge small {
+.dataset-badge small,
+.local-cognee-badge b,
+.local-cognee-badge small {
   display: block;
 }
 
-.dataset-badge b {
+.dataset-badge b,
+.local-cognee-badge b {
   font-size: 7.4px;
 }
 
-.dataset-badge small {
+.dataset-badge small,
+.local-cognee-badge small {
   margin-top: 1px;
   color: #70877a;
   font-size: 5.8px;
+}
+
+.local-cognee-badge.ready {
+  color: #24613f;
+  background: #e2f1e7;
+  border-color: #9dc8ad;
+}
+
+.local-cognee-badge.offline {
+  color: #8b4a42;
+  background: #faece9;
+  border-color: #e6b9b3;
 }
 
 .memory-header-actions > button {
@@ -675,6 +693,11 @@
   background: #f7f5fa;
   border: 1px solid #e2dced;
   border-radius: 6px;
+}
+
+.recall-result.error {
+  background: #fff5f3;
+  border-color: #e6b9b3;
 }
 
 .memory-result-label {

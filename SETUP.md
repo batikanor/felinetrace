@@ -10,7 +10,7 @@ Both top variants run as complete replay demos without an account, API key, or e
 | Codex CLI | Installed | `codex-cli 0.145.0-alpha.18` is available. |
 | Codex authentication | Ready | `codex login status` reports ChatGPT sign-in. This does not by itself mean the reviewer sidecar is wired. |
 | Tavily | Not configured | No `TAVILY_API_KEY` is present. The replay demo still works. |
-| Cognee | Not configured | No Cloud key or local Cognee URL is present. The replay demo still works. |
+| Cognee | Local | Docker-hosted Cognee uses local Ollama models and local SQLite/LanceDB/Kuzu stores. |
 | OpenAI Platform API | Not configured | Not required for the current Codex login path. |
 
 ## Recommended optional setup
@@ -25,14 +25,11 @@ Sources: [Tavily quickstart](https://docs.tavily.com/documentation/quickstart), 
 
 ### Cognee
 
-Choose one path:
-
-- **Cognee Cloud:** sign in with Google or GitHub, create an API key, and store `COGNEE_API_KEY` plus the tenant URL on the server.
-- **Local Cognee:** install the open-source package or Docker service. The default local stores are SQLite, LanceDB, and Kuzu. Configure both an LLM and embeddings; Ollama plus Fastembed is a local-key-free option.
+Run `services/cognee-local/start.sh`. The stack uses the official Cognee image on loopback, Ollama for both generation and embeddings, and local SQLite/LanceDB/Kuzu stores. It does not use Cognee Cloud, a Cognee account, or a Cognee API key.
 
 The FelineTrace adapter must expose a JSON health contract that confirms dataset isolation and provenance resolution. Cognee's own `/health` may be an empty successful response, so the browser should not call or interpret it directly.
 
-Sources: [Cognee installation](https://docs.cognee.ai/getting-started/installation), [Cloud signup](https://docs.cognee.ai/cognee-cloud/sign-up), [API keys](https://docs.cognee.ai/cognee-cloud/ui/api-keys), [API deployment](https://docs.cognee.ai/api-reference/introduction).
+Sources: [Cognee local setup](https://docs.cognee.ai/guides/local-setup), [REST deployment](https://docs.cognee.ai/guides/deploy-rest-api-server), and [Cognee repository](https://github.com/topoteretes/cognee).
 
 ### Codex
 
@@ -48,7 +45,7 @@ Sources: [Codex authentication](https://learn.chatgpt.com/docs/auth), [Codex SDK
 2. Choose a dossier and review its file inventory and immutable source anchors.
 3. Run the deterministic audit pass.
 4. Inspect held leads before enabling optional specialists.
-5. Configure Cognee, Tavily, or the Codex sidecar only if the engagement permits them.
+5. Start local Cognee; configure Tavily or the Codex sidecar only if the engagement permits them.
 6. Re-run Setup checks; a credential present and an adapter reachable are separate checks.
 7. Review every proposed claim and open its exact sources.
 8. Accept, edit, or reject the wording in the PlateJS report.

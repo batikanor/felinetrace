@@ -1,6 +1,6 @@
 # Cognee evidence-memory plan
 
-The current build is an interactive front-end prototype. This plan maps it to Cognee v1.0 without weakening the audit trail.
+The evidence-memory view now talks to the self-hosted Cognee 1.4 REST API through the loopback FelineTrace adapter. This plan keeps that integration from weakening the audit trail.
 
 ## 1. Dossier boundary
 
@@ -110,7 +110,7 @@ await cognee.improve(dataset=dataset_name, session_ids=reviewed_session_ids)
 await cognee.forget(dataset=dataset_name)
 ```
 
-The production adapter should be pinned to a tested Cognee v1.0 release and covered by migration tests.
+The production adapter is self-hosted and pinned to the tested Cognee 1.4 API contract. Cloud mode is intentionally unsupported; upgrades require migration tests.
 
 ## 7. Acceptance checks
 

@@ -46,9 +46,9 @@ function serviceIcon(service: ServiceId) {
 
 const serviceCopy = {
   cognee: {
-    name: 'Cognee relationship recall',
-    tags: 'Optional · IDs/relationships · 1 recall',
-    contract: `{ "service":"cognee", "ok":true, "mode":"local|cloud", "provenanceResolver":true }`,
+    name: 'Local Cognee memory',
+    tags: 'Self-hosted · IDs/relationships',
+    contract: `{ "service":"cognee", "ok":true, "mode":"local", "selfHosted":true, "apiVersion":"v1" }`,
   },
   tavily: {
     name: 'Tavily official-record proxy',
@@ -126,11 +126,6 @@ export function SetupPage({ controller, onBack, onNotice }: SetupPageProps) {
             <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.core.citations === 14)} /><span><strong>Fourteen citations</strong><small>Exact source anchors</small></span></div>
             <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.codexCli.installed)} /><span><strong>Codex CLI installed</strong><small>{runtimeStatus?.codexCli.version ?? 'Not detected'}</small></span></div>
             <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.codexCli.authenticated)} /><span><strong>Codex CLI authenticated</strong><small>{runtimeStatus?.codexCli.auth === 'chatgpt' ? 'ChatGPT login' : 'Not detected'}</small></span></div>
-            <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.adapters.codexSidecarReady)} /><span><strong>Reviewer sidecar ready</strong><small>Separate from CLI authentication</small></span></div>
-            <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.credentials.cogneeConfigured)} /><span><strong>Cognee credential configured</strong><small>Server presence only</small></span></div>
-            <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.adapters.cogneeReady)} /><span><strong>Cognee adapter ready</strong><small>End-to-end JSON health</small></span></div>
-            <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.credentials.tavilyConfigured)} /><span><strong>Tavily credential configured</strong><small>Server presence only</small></span></div>
-            <div><StatusMark phase={runtimeCheckPhase(runtimeStatus?.adapters.tavilyReady)} /><span><strong>Tavily proxy ready</strong><small>End-to-end JSON health</small></span></div>
           </div>
         </section>
 
@@ -161,7 +156,7 @@ export function SetupPage({ controller, onBack, onNotice }: SetupPageProps) {
             const check = adapterChecks[service]
             return (
               <article className="adapter-card" key={service}>
-                <header><span className="adapter-icon">{serviceIcon(service)}</span><div><h3>{copy.name}</h3><small>{copy.tags}</small></div><StatusMark phase={check.phase} /></header>
+                <header><span className="adapter-icon">{serviceIcon(service)}</span><div><h3>{copy.name}</h3><small>{copy.tags}</small></div></header>
                 <label>
                   <span>Server health endpoint</span>
                   <div><input value={endpoints[service]} onChange={(event) => setEndpoint(service, event.target.value)} spellCheck={false} /><button type="button" onClick={() => void testEndpoint(service)}>Test</button></div>
@@ -178,8 +173,8 @@ export function SetupPage({ controller, onBack, onNotice }: SetupPageProps) {
         <section className="setup-instructions">
           <header><KeyRound size={14} /> Accounts, keys, servers</header>
           <details open>
-            <summary>Cognee · local or cloud</summary>
-            <p>Local: <code>pip install cognee</code>; SQLite/LanceDB/Kuzu work locally. Configure LLM + embedding providers; Ollama + Fastembed avoids cloud keys. Cloud: Google/GitHub signup, trial, then place <code>COGNEE_API_KEY</code> on the adapter server. Our adapter converts health to the JSON contract above and resolves provenance.</p>
+            <summary>Cognee · self-hosted</summary>
+            <p>Run <code>services/cognee-local/start.sh</code>. Cognee, Ollama, SQLite, LanceDB, and Kuzu remain on this machine. No Cognee account or Cognee API key is used.</p>
           </details>
           <details>
             <summary>Tavily · official-record proxy</summary>

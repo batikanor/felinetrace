@@ -39,12 +39,7 @@ type LocalStatusPayload = {
       version?: string
     }
     credentials: {
-      cognee: boolean
       tavily: boolean
-    }
-    cogneeBase: {
-      configured: boolean
-      reachable: boolean | null
     }
   }
   security: {
@@ -63,10 +58,10 @@ type IntegrationSpec = {
   validate: (payload: unknown) => { ok: boolean; detail: string }
 }
 
-const STORAGE_KEY = 'trace:claim-compiler:endpoints:v1'
+const STORAGE_KEY = 'trace:claim-compiler:endpoints:v2'
 
 const defaultEndpoints: EndpointMap = {
-  cognee: 'http://127.0.0.1:8010/health/claim-compiler',
+  cognee: 'http://127.0.0.1:43110/health',
   tavily: 'http://127.0.0.1:8787/health/tavily',
   codex: 'http://127.0.0.1:4010/health',
 }
@@ -84,22 +79,23 @@ function isObject(value: unknown): value is Record<string, unknown> {
 const integrations: IntegrationSpec[] = [
   {
     id: 'cognee',
-    name: 'Cognee adapter',
-    role: 'Relationship candidates',
+    name: 'Local Cognee',
+    role: 'Self-hosted memory',
     icon: BrainCircuit,
-    contract: '{ service: "cognee", ok: true, mode: "local|cloud", provenanceResolver: true }',
+    contract: '{ service: "cognee", ok: true, mode: "local", selfHosted: true, apiVersion: "v1" }',
     steps: [
-      'Local: install Cognee and configure LLM + embedding providers; Ollama + Fastembed can keep the stack local.',
-      'Cloud: sign in with Google or GitHub, then place COGNEE_API_KEY on the adapter server.',
-      'Expose this sanitized contract only after the chunk-to-document provenance resolver passes.',
+      'Start services/cognee-local on this machine.',
+      'Ollama supplies both the LLM and embeddings.',
+      'Local only; no Cognee account or key.',
     ],
     validate: (payload) => {
       if (!isObject(payload)) return { ok: false, detail: 'Expected a JSON object' }
       const valid = payload.service === 'cognee'
         && payload.ok === true
-        && (payload.mode === 'local' || payload.mode === 'cloud')
-        && payload.provenanceResolver === true
-      return valid ? { ok: true, detail: `${String(payload.mode)} adapter · provenance resolver ready` } : { ok: false, detail: 'JSON contract failed: service, mode, or resolver' }
+        && payload.mode === 'local'
+        && payload.selfHosted === true
+        && payload.apiVersion === 'v1'
+      return valid ? { ok: true, detail: `Self-hosted · ${String(payload.build ?? 'local')}` } : { ok: false, detail: 'Local Cognee or required models are unavailable' }
     },
   },
   {
@@ -160,19 +156,19 @@ function readStoredEndpoints(): EndpointMap {
 function validateLocalPayload(payload: unknown): payload is LocalStatusPayload {
   if (!isObject(payload) || payload.service !== 'claim-compiler-dev-status' || payload.ok !== true) return false
   if (!isObject(payload.core) || payload.core.demo !== true || payload.core.compiler !== true) return false
-  if (!isObject(payload.environment) || !isObject(payload.environment.codex) || !isObject(payload.environment.credentials) || !isObject(payload.environment.cogneeBase)) return false
+  if (!isObject(payload.environment) || !isObject(payload.environment.codex) || !isObject(payload.environment.credentials)) return false
   if (!isObject(payload.security) || payload.security.secretsExposed !== false || payload.security.codexExecAllowed !== false) return false
   return typeof payload.environment.codex.installed === 'boolean'
     && typeof payload.environment.codex.authenticated === 'boolean'
-    && typeof payload.environment.credentials.cognee === 'boolean'
     && typeof payload.environment.credentials.tavily === 'boolean'
 }
 
-function normalizeHealthUrl(value: string) {
+function normalizeHealthUrl(value: string, localOnly = false) {
   const url = new URL(value.trim(), window.location.href)
   if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('Use an http(s) health URL')
   if (url.username || url.password || url.search || url.hash) throw new Error('Remove credentials, query strings, and fragments')
   const loopback = url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '::1' || url.hostname === '[::1]'
+  if (localOnly && !loopback) throw new Error('Cognee must run on loopback')
   if (url.protocol === 'http:' && !loopback) throw new Error('HTTP is allowed only on loopback; use HTTPS elsewhere')
   return url.toString()
 }
@@ -231,7 +227,7 @@ export function SetupPage() {
     const controller = new AbortController()
     const timeoutId = window.setTimeout(() => controller.abort(), 3600)
     try {
-      const url = normalizeHealthUrl(endpoints[spec.id])
+      const url = normalizeHealthUrl(endpoints[spec.id], spec.id === 'cognee')
       const response = await fetch(url, {
         method: 'GET',
         headers: { Accept: 'application/json' },

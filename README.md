@@ -46,6 +46,10 @@ Challenge data and ground truth are intentionally excluded from Git. Place local
 - `source-docs/data/`
 - `source-docs/data-ground-truth/`
 
-The current prototypes embed the sample findings and evidence metadata in `src/caseData.ts`. Dynamic ingestion and execution against a new dossier are the next implementation layer.
+The current prototypes embed the benchmark findings and evidence metadata in `src/caseData.ts`. `solution-2-7` additionally performs live, dossier-scoped Recall through the local Cognee adapter; the deterministic detector outputs remain replayed fixtures.
+
+## Local Cognee
+
+Cognee is self-hosted through [`services/cognee-local`](./services/cognee-local). It uses local Ollama generation and embeddings plus SQLite, LanceDB, and Kuzu. No Cognee Cloud account or key is used.
 
 See [UX-VARIANTS.md](./UX-VARIANTS.md) for this interface comparison, [METHODS.md](./METHODS.md) for the detection approaches, [RANKING.md](./RANKING.md) for the winning-chance assessment, [SETUP.md](./SETUP.md) for onboarding, and [RESEARCH.md](./RESEARCH.md) for the Cognee, Tavily, public-source, and Codex guidance.

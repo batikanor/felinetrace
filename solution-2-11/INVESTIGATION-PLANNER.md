@@ -71,10 +71,10 @@ Optional services stay off unless a matching adapter passes its JSON health cont
 Health endpoints are non-secret URLs. HTTP is accepted only for loopback; non-loopback endpoints must use HTTPS.
 
 ```json
-{ "service": "cognee", "ok": true, "mode": "local", "provenanceResolver": true }
+{ "service": "cognee", "ok": true, "mode": "local", "selfHosted": true, "apiVersion": "v1" }
 ```
 
-Cognee also accepts `"mode": "cloud"`.
+Cognee is self-hosted on loopback; cloud mode is intentionally unsupported.
 
 ```json
 { "service": "tavily", "ok": true, "mode": "proxy", "usageChecked": true }
@@ -88,10 +88,9 @@ Codex CLI installation/authentication and reviewer-sidecar readiness are distinc
 
 ## Server configuration
 
-Copy `.env.example` to `.env.local` only when configuring optional services. Keep `COGNEE_API_KEY` and `TAVILY_API_KEY` on the server; there are no browser key inputs and no `VITE_` secret variables.
+Copy `.env.example` to `.env.local` only when configuring optional services. Keep `TAVILY_API_KEY` on the server; local Cognee needs no Cognee credential, and there are no browser key inputs or `VITE_` secret variables.
 
-- **Cognee local:** `pip install cognee`; SQLite/LanceDB/Kuzu can remain local. Configure an LLM and embeddings; Ollama plus Fastembed avoids cloud keys.
-- **Cognee cloud:** place the key on the adapter server and expose only the sanitized health contract.
+- **Cognee local:** run `services/cognee-local/start.sh`; Ollama supplies the LLM and embeddings while SQLite, LanceDB, and Kuzu persist locally.
 - **Tavily:** place the key on the proxy server. The proxy may check usage server-side and return only `usageChecked`.
 - **Codex:** authenticate the CLI separately, then run a purpose-built loopback reviewer sidecar with a read-only sandbox contract.
 

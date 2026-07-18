@@ -52,7 +52,7 @@ An HTTP 200 does not pass by itself. The response must parse as JSON and match t
 }
 ```
 
-`mode` may be `local` or `cloud`. Local Cognee still needs LLM and embedding providers; Ollama plus Fastembed can keep those local. Cognee Cloud credentials belong in the adapter server environment. The adapter should report ready only after its chunk → Document → exact source resolver passes.
+Cognee runs only on loopback through `services/cognee-local`. Ollama supplies both `llama3.1:8b` and `nomic-embed-text`; SQLite, LanceDB, and Kuzu persist in a Docker volume. There is no Cognee Cloud account or Cognee API key. Retrieved graph candidates still pass through the exact source resolver before becoming evidence.
 
 ### Tavily proxy
 
@@ -86,8 +86,8 @@ The Vite dev plugin exposes safe `GET /api/setup/status` while running `vite`:
 
 - `codex --version`
 - `codex login status`
-- boolean presence of `COGNEE_API_KEY` and `TAVILY_API_KEY`
-- boolean presence of `COGNEE_BASE_URL`
+- boolean presence of `TAVILY_API_KEY`
+- local Cognee and Ollama reachability
 
 It never runs `codex exec`, reads source files, or returns credential values. Output is reduced to booleans, a sanitized version, and the detected auth kind. The route is dev-only; a deployed static build must supply an equivalent server route or show the bridge as unavailable.
 

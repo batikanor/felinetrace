@@ -24,14 +24,16 @@ exact dossier citations → editable PlateJS report
 
 Useful for cross-document memory, alias resolution, relationship paths and reviewer feedback.
 
-- Current high-level lifecycle: `remember`, `recall`, `improve`, `forget`.
+- Run Cognee only on loopback through `services/cognee-local`; Cognee Cloud is intentionally unsupported.
+- Follow the v1.4 lifecycle and REST surface: `remember`, `recall`, `improve`, `forget` under `/api/v1`.
+- Configure both local providers so neither silently falls back to OpenAI: Ollama `llama3.1:8b` for generation and `nomic-embed-text` for 768-dimensional embeddings.
 - Use one isolated dataset per dossier.
 - Define an audit-specific `DataPoint` graph model instead of accepting unconstrained entity extraction.
 - Feed structured tables through Cognee's dlt integration so foreign keys and rows create deterministic graph edges.
 - Keep an explicit provenance resolver. Cognee chunk/summary search returns IDs, but source file paths live on `Document` nodes; a retrieved answer is not yet an audit citation.
 - Reviewer feedback may tune retrieval, but benchmark ground truth must never enter `improve()`.
 
-Sources: [Cognee overview](https://docs.cognee.ai/core-concepts/overview), [custom graph model](https://docs.cognee.ai/guides/custom-graph-model), [structured dlt ingestion](https://docs.cognee.ai/integrations/dlt-integration), [search provenance](https://docs.cognee.ai/guides/search-basics), [dataset isolation](https://docs.cognee.ai/core-concepts/multi-user-mode/permissions-system/datasets).
+Sources: [Cognee repository](https://github.com/topoteretes/cognee), [local setup](https://docs.cognee.ai/guides/local-setup), [REST deployment](https://docs.cognee.ai/guides/deploy-rest-api-server), [search provenance](https://docs.cognee.ai/guides/search-basics), and [dataset isolation](https://docs.cognee.ai/core-concepts/multi-user-mode/permissions-system/datasets).
 
 ## Tavily and public checks
 

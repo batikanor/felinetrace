@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   ArrowRight,
@@ -63,8 +63,9 @@ type CaseDraft = {
 }
 
 type Feedback = 'helpful' | 'review' | null
-type RecallState = 'ready' | 'running' | 'done'
+type RecallState = 'ready' | 'running' | 'done' | 'error'
 type ImproveState = 'idle' | 'staged'
+type LocalCogneeState = 'checking' | 'ready' | 'offline'
 
 const sourceById = new Map(Object.values(sources).map((source) => [source.id, source]))
 const sourceOptions = Array.from(sourceById.values())
@@ -185,11 +186,13 @@ type EvidenceMemoryProps = {
 }
 
 export function EvidenceMemory({ onOpenSource }: EvidenceMemoryProps) {
+  const [localCognee, setLocalCognee] = useState<LocalCogneeState>('checking')
   const [customCases, setCustomCases] = useState<MemoryCase[]>([])
   const [activeCaseId, setActiveCaseId] = useState('F-01')
   const [activeStage, setActiveStage] = useState('resolver')
   const [query, setQuery] = useState(baseCases[0].query)
   const [recallState, setRecallState] = useState<RecallState>('done')
+  const [localRecall, setLocalRecall] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [improveState, setImproveState] = useState<ImproveState>('idle')
   const [addCaseOpen, setAddCaseOpen] = useState(false)
@@ -199,21 +202,52 @@ export function EvidenceMemory({ onOpenSource }: EvidenceMemoryProps) {
   const resolvedSource = activeCase.sources[0]
   const citationNumber = resolvedSource ? citationNumberById[resolvedSource.id] : undefined
 
+  useEffect(() => {
+    const controller = new AbortController()
+    void fetch('http://127.0.0.1:43110/health', { signal: controller.signal })
+      .then(async (response) => {
+        const payload = await response.json() as { ok?: unknown; mode?: unknown; selfHosted?: unknown }
+        setLocalCognee(response.ok && payload.ok === true && payload.mode === 'local' && payload.selfHosted === true ? 'ready' : 'offline')
+      })
+      .catch(() => setLocalCognee('offline'))
+    return () => controller.abort()
+  }, [])
+
   const selectCase = (nextCase: MemoryCase) => {
     setActiveCaseId(nextCase.id)
     setQuery(nextCase.query)
     setRecallState('done')
+    setLocalRecall(null)
     setFeedback(null)
     setImproveState('idle')
   }
 
-  const runRecall = (event: FormEvent<HTMLFormElement>) => {
+  const runRecall = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!query.trim()) return
+    if (localCognee !== 'ready') {
+      setLocalRecall('Local Cognee is offline. Start services/cognee-local first.')
+      setRecallState('error')
+      return
+    }
     setRecallState('running')
+    setLocalRecall(null)
     setFeedback(null)
     setImproveState('idle')
-    window.setTimeout(() => setRecallState('done'), 520)
+    try {
+      const response = await fetch('http://127.0.0.1:43110/recall', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query.trim() }),
+      })
+      const payload = await response.json() as { ok?: unknown; answer?: unknown; error?: unknown }
+      if (!response.ok || payload.ok !== true) throw new Error(typeof payload.error === 'string' ? payload.error : 'Local recall failed')
+      setLocalRecall(typeof payload.answer === 'string' && payload.answer.trim() ? payload.answer : 'No matching relationship was recalled.')
+      setRecallState('done')
+    } catch (error) {
+      setLocalRecall(error instanceof Error ? error.message : 'Local recall failed')
+      setRecallState('error')
+    }
   }
 
   const captureFeedback = (value: Exclude<Feedback, null>) => {
@@ -265,6 +299,7 @@ export function EvidenceMemory({ onOpenSource }: EvidenceMemoryProps) {
           <p>Memory finds the path; the resolver earns the citation.</p>
         </div>
         <div className="memory-header-actions">
+          <span className={`local-cognee-badge ${localCognee}`}><BrainCircuit size={13} /><b>Local Cognee</b><small>{localCognee === 'ready' ? 'running' : localCognee === 'checking' ? 'checking' : 'offline'}</small></span>
           <span className="dataset-badge"><Database size={13} /><b>audit-muster-2025</b><small>isolated dataset</small></span>
           <button type="button" onClick={() => activeCase.sources.forEach(onOpenSource)}><Box size={14} /> Open linked</button>
           <button type="button" className="memory-add-case" onClick={() => setAddCaseOpen(true)}><Plus size={14} /> Add case</button>
@@ -272,7 +307,7 @@ export function EvidenceMemory({ onOpenSource }: EvidenceMemoryProps) {
       </header>
 
       <div className="operation-strip">
-        <span>v1.0</span><b>remember</b><i /><b>recall</b><i /><b>improve</b><i /><b>forget</b>
+        <span>v1.4</span><b>remember</b><i /><b>recall</b><i /><b>improve</b><i /><b>forget</b>
         <em>1 dossier = 1 dataset</em>
       </div>
 
@@ -356,12 +391,12 @@ export function EvidenceMemory({ onOpenSource }: EvidenceMemoryProps) {
             <button type="submit" disabled={recallState === 'running'}>{recallState === 'running' ? <RefreshCw size={14} className="spin" /> : <Search size={14} />}{recallState === 'running' ? 'Recalling' : 'Recall'}</button>
           </form>
 
-          <div className={`recall-result ${recallState === 'running' ? 'loading' : ''}`}>
-            <div className="memory-result-label"><span>MEMORY RESULT</span><em>source: graph</em></div>
+          <div className={`recall-result ${recallState === 'running' ? 'loading' : ''} ${recallState === 'error' ? 'error' : ''}`}>
+            <div className="memory-result-label"><span>MEMORY RESULT</span><em>local graph</em></div>
             {recallState === 'running' ? (
               <div className="recall-skeleton"><i /><i /><i /></div>
             ) : (
-              <p>{activeCase.recall}</p>
+              <p>{localRecall ?? activeCase.recall}</p>
             )}
             <div className="memory-not-citation"><CircleAlert size={13} /><strong>Memory hit ≠ citation</strong><span>Resolve the provenance chain first.</span></div>
           </div>

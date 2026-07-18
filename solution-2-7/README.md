@@ -29,3 +29,5 @@ npm run build
 ```
 
 Backend integration details are in [COGNEE.md](./COGNEE.md).
+
+Cognee runs locally through `../services/cognee-local`; Cognee Cloud is not supported.

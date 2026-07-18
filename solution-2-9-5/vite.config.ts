@@ -61,12 +61,7 @@ function setupStatusPlugin(env: ServerEnv): Plugin {
               ...(auth ? { auth } : {}),
             },
             credentials: {
-              cognee: Boolean(env.COGNEE_API_KEY?.trim()),
               tavily: Boolean(env.TAVILY_API_KEY?.trim()),
-            },
-            cogneeBase: {
-              configured: Boolean(env.COGNEE_BASE_URL?.trim()),
-              reachable: null,
             },
           },
           security: {

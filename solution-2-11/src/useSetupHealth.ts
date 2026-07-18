@@ -24,7 +24,6 @@ export type RuntimeStatus = {
     auth: string | null
   }
   credentials: {
-    cogneeConfigured: boolean
     tavilyConfigured: boolean
   }
   adapters: {
@@ -35,10 +34,10 @@ export type RuntimeStatus = {
   checkedAt: string
 }
 
-const endpointStorageKey = 'trace.investigation.endpoint-urls.v1'
+const endpointStorageKey = 'trace.investigation.endpoint-urls.v2'
 
 export const defaultEndpointUrls: EndpointUrls = {
-  cognee: 'http://127.0.0.1:43101/health',
+  cognee: 'http://127.0.0.1:43110/health',
   tavily: 'http://127.0.0.1:43102/health',
   codex: 'http://127.0.0.1:43103/health',
 }
@@ -79,8 +78,9 @@ function validateEndpoint(endpoint: string) {
 function validateHealthContract(service: ServiceId, body: Record<string, unknown>) {
   if (body.service !== service || body.ok !== true) return ''
   if (service === 'cognee') {
-    const validMode = body.mode === 'local' || body.mode === 'cloud'
-    return validMode && body.provenanceResolver === true ? `Ready · ${String(body.mode)}` : ''
+    return body.mode === 'local' && body.selfHosted === true && body.apiVersion === 'v1'
+      ? `Ready · self-hosted · ${String(body.build ?? 'local')}`
+      : ''
   }
   if (service === 'tavily') {
     return body.mode === 'proxy' && body.usageChecked === true ? 'Ready · server proxy' : ''
@@ -129,6 +129,7 @@ export function useSetupHealth() {
   const testEndpoint = useCallback(async (service: ServiceId) => {
     const endpoint = endpoints[service].trim()
     const validationError = validateEndpoint(endpoint)
+      || (service === 'cognee' && !['127.0.0.1', 'localhost', '[::1]'].includes(new URL(endpoint).hostname) ? 'Cognee must run on loopback.' : '')
     if (validationError) {
       setAdapterChecks((current) => ({ ...current, [service]: { phase: 'error', message: validationError } }))
       return false

@@ -40,7 +40,7 @@ function setupStatusPlugin(env: Record<string, string>): Plugin {
         const [version, login, cogneeReady, tavilyReady, codexSidecarReady] = await Promise.all([
           runCommand(env.CODEX_CLI_PATH || 'codex', ['--version']),
           runCommand(env.CODEX_CLI_PATH || 'codex', ['login', 'status']),
-          probeSanitizedAdapter(env.COGNEE_ADAPTER_URL, 'cognee'),
+          probeSanitizedAdapter(env.COGNEE_ADAPTER_URL || 'http://127.0.0.1:43110/health', 'cognee'),
           probeSanitizedAdapter(env.TAVILY_PROXY_URL, 'tavily'),
           probeSanitizedAdapter(env.CODEX_ADAPTER_URL, 'codex'),
         ])
@@ -59,7 +59,6 @@ function setupStatusPlugin(env: Record<string, string>): Plugin {
             auth: login.ok && /chatgpt/i.test(login.output) ? 'chatgpt' : null,
           },
           credentials: {
-            cogneeConfigured: Boolean(env.COGNEE_API_KEY),
             tavilyConfigured: Boolean(env.TAVILY_API_KEY),
           },
           adapters: {
