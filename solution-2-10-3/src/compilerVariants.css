@@ -1,0 +1,65 @@
+/* Green/white claim-review alternatives. */
+.claim-compiler[class*="compiler-layout-"] { border: 1px solid #b8d4c2; box-shadow: 0 12px 34px rgba(23,61,45,.09); }
+.claim-compiler[class*="compiler-layout-"] .compiler-header { background: #f7fbf8; border-bottom-color: #d8e8de; }
+.claim-compiler[class*="compiler-layout-"] .compiler-toggle { color: #1f5b40; border-color: #9fc5ad; }
+.claim-compiler[class*="compiler-layout-"] .compiler-add { background: #1f5b40; }
+.claim-compiler[class*="compiler-layout-"] .claim-switcher > button.active { background: #1f5b40; border-color: #1f5b40; }
+.claim-compiler[class*="compiler-layout-"] .proof-gate.active { background: #e4f0e8; border-color: #2f6b4e; }
+
+/* 2-10-2: claim form — choose a claim, then complete the proof form. */
+.compiler-layout-form .claim-switcher { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 18px 22px; background: #f1f7f3; }
+.compiler-layout-form .claim-switcher > button { min-height: 78px; padding: 13px; }
+.compiler-layout-form .compiler-toolbar { min-height: 74px; padding: 12px 22px; }
+.compiler-layout-form .compiler-toolbar strong { font-size: 18px; }
+.compiler-layout-form .gate-pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 0 22px 18px; }
+.compiler-layout-form .gate-wrap { display: block; min-width: 0; }
+.compiler-layout-form .gate-arrow { display: none; }
+.compiler-layout-form .proof-gate { min-height: 108px; grid-template-columns: 38px 1fr; padding: 14px; }
+.compiler-layout-form .gate-icon { width: 38px; height: 38px; }
+.compiler-layout-form .compiler-inspector { gap: 18px; padding: 18px 22px 22px; background: #f7fbf8; }
+
+/* 2-10-3: claim accordion — cases form the primary vertical reading order. */
+.compiler-layout-accordion { display: grid; grid-template-columns: minmax(300px, 35%) 1fr; }
+.compiler-layout-accordion .compiler-header { grid-column: 1 / -1; }
+.compiler-layout-accordion .claim-switcher { grid-column: 1; grid-row: 2 / span 3; display: flex; flex-direction: column; gap: 8px; padding: 18px; background: #f1f7f3; }
+.compiler-layout-accordion .claim-switcher > button { min-height: 78px; }
+.compiler-layout-accordion .compiler-toolbar, .compiler-layout-accordion .gate-pipeline, .compiler-layout-accordion .compiler-inspector { grid-column: 2; }
+.compiler-layout-accordion .compiler-toolbar { min-height: 80px; padding: 16px 20px; }
+.compiler-layout-accordion .gate-pipeline { display: grid; grid-template-columns: 1fr; gap: 7px; padding: 0 20px 16px; }
+.compiler-layout-accordion .gate-wrap { min-width: 0; }
+.compiler-layout-accordion .proof-gate { min-height: 58px; }
+.compiler-layout-accordion .gate-arrow { display: none; }
+.compiler-layout-accordion .compiler-inspector { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px 22px; }
+.compiler-layout-accordion .manual-claims { grid-column: 1 / -1; }
+
+/* 2-10-4: proof checklist — large gates beside the supporting atoms. */
+.compiler-layout-checklist .claim-switcher { display: flex; gap: 8px; padding: 14px 22px; overflow-x: auto; background: #f7fbf8; }
+.compiler-layout-checklist .claim-switcher > button { flex: 1 0 230px; min-height: 68px; }
+.compiler-layout-checklist .compiler-toolbar { padding: 16px 22px; }
+.compiler-layout-checklist .gate-pipeline { float: left; display: flex; width: 38%; flex-direction: column; gap: 9px; padding: 0 0 22px 22px; }
+.compiler-layout-checklist .gate-wrap { width: 100%; flex: none; }
+.compiler-layout-checklist .proof-gate { min-height: 76px; padding: 12px; }
+.compiler-layout-checklist .gate-arrow { display: none; }
+.compiler-layout-checklist .compiler-inspector { float: right; width: calc(62% - 18px); display: flex; min-height: 415px; flex-direction: column; gap: 14px; padding: 0 22px 22px 0; }
+.compiler-layout-checklist::after { display: block; clear: both; content: ''; }
+.compiler-layout-checklist .manual-claims { clear: both; }
+
+/* 2-10-5: review wizard — a calm stage strip and a large current proof. */
+.compiler-layout-wizard .claim-switcher { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 14px 22px; }
+.compiler-layout-wizard .claim-switcher > button { min-height: 68px; }
+.compiler-layout-wizard .compiler-toolbar { min-height: 76px; padding: 14px 22px; background: #f1f7f3; }
+.compiler-layout-wizard .compiler-toolbar strong { font-size: 20px; }
+.compiler-layout-wizard .gate-pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 18px 22px; }
+.compiler-layout-wizard .gate-wrap { display: block; min-width: 0; }
+.compiler-layout-wizard .gate-arrow { display: none; }
+.compiler-layout-wizard .proof-gate { min-height: 92px; display: flex; flex-direction: column; align-items: flex-start; padding: 13px; }
+.compiler-layout-wizard .proof-gate:not(.active) { background: #fff; opacity: .62; }
+.compiler-layout-wizard .proof-gate.active { box-shadow: 0 0 0 3px rgba(47,107,78,.12); opacity: 1; }
+.compiler-layout-wizard .compiler-inspector { grid-template-columns: 1fr 330px; gap: 20px; padding: 22px; background: #f7fbf8; }
+.compiler-layout-wizard .atom-panel { min-height: 300px; }
+
+@media (max-width: 900px) {
+  .compiler-layout-form .claim-switcher, .compiler-layout-form .gate-pipeline, .compiler-layout-wizard .claim-switcher, .compiler-layout-wizard .gate-pipeline { grid-template-columns: 1fr; }
+  .compiler-layout-accordion { display: block; }
+  .compiler-layout-checklist .gate-pipeline, .compiler-layout-checklist .compiler-inspector { width: auto; float: none; padding: 14px; }
+}

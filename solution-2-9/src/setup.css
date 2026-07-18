@@ -135,7 +135,7 @@
 .status-mark.pass { color: #27754e; background: #dff1e5; }
 .status-mark.fail { color: #a44941; background: #f9e4e1; }
 .status-mark.pending { color: #806a3d; background: #f4ecd8; }
-.status-mark.checking { color: #65548d; background: #e9e3f3; }
+.status-mark.checking { color: #2f6b4e; background: #e4f0e8; }
 
 .status-mark.checking svg,
 .integration-card.checking .endpoint-control button svg {
@@ -169,8 +169,8 @@
   width: 27px;
   height: 27px;
   place-items: center;
-  color: #67558f;
-  background: #eeeaf5;
+  color: #2f6b4e;
+  background: #e4f0e8;
   border-radius: 5px;
 }
 
@@ -183,7 +183,7 @@
 .runtime-card > header > button {
   height: 26px;
   padding: 0 7px;
-  color: #5e507f;
+  color: #285f43;
   background: #fff;
   border: 1px solid #d7d0e2;
 }
@@ -244,7 +244,7 @@
 
 .integration-card > header {
   display: grid;
-  grid-template-columns: 29px minmax(0, 1fr) 22px;
+  grid-template-columns: 29px minmax(0, 1fr);
   align-items: center;
   gap: 6px;
   padding: 8px;
@@ -257,8 +257,8 @@
   width: 28px;
   height: 28px;
   place-items: center;
-  color: #67558f;
-  background: #ebe7f3;
+  color: #2f6b4e;
+  background: #e4f0e8;
   border-radius: 5px;
 }
 
@@ -306,8 +306,8 @@
 }
 
 .endpoint-control input:focus {
-  border-color: #8673ad;
-  box-shadow: 0 0 0 2px rgba(112, 92, 155, 0.09);
+  border-color: #2f6b4e;
+  box-shadow: 0 0 0 2px rgba(47, 107, 78, 0.1);
 }
 
 .endpoint-control button {
@@ -338,7 +338,7 @@
 }
 
 .integration-card summary {
-  color: #5f507f;
+  color: #2f6b4e;
   font-size: 6px;
   font-weight: 700;
 }
@@ -499,7 +499,7 @@
   }
 
   .integration-card > header {
-    grid-template-columns: 44px minmax(0, 1fr) 32px;
+    grid-template-columns: 44px minmax(0, 1fr);
     gap: 11px;
     padding: 14px;
   }

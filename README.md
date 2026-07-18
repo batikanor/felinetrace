@@ -15,7 +15,15 @@ Evidence-first audit prototypes for the Cortea challenge. Every reported claim l
 | `solution-2-7` | Evidence memory | Cognee graph/vector recall with provenance repair | `42977` |
 | `solution-2-8` | Local reviewer | Human-gated Codex sidecar | `42988` |
 | `solution-2-9` | Adaptive router | Cost-aware staged escalation | `42999` |
+| `solution-2-9-2` | Adaptive router | Finding drawer | `43192` |
+| `solution-2-9-3` | Adaptive router | Route form | `43193` |
+| `solution-2-9-4` | Adaptive router | Stage accordion | `43194` |
+| `solution-2-9-5` | Adaptive router | Focus navigator | `43195` |
 | `solution-2-10` | Claim Compiler | Executable evidence proofs | `43010` |
+| `solution-2-10-2` | Claim Compiler | Claim form | `43202` |
+| `solution-2-10-3` | Claim Compiler | Claim accordion | `43203` |
+| `solution-2-10-4` | Claim Compiler | Proof checklist | `43204` |
+| `solution-2-10-5` | Claim Compiler | Review wizard | `43205` |
 | `solution-2-11` | Investigation Planner | Next-best-test orchestration | `43021` |
 
 Earlier explorations remain available in `solution-1 (deprecated)`,
@@ -40,4 +48,4 @@ Challenge data and ground truth are intentionally excluded from Git. Place local
 
 The current prototypes embed the sample findings and evidence metadata in `src/caseData.ts`. Dynamic ingestion and execution against a new dossier are the next implementation layer.
 
-See [METHODS.md](./METHODS.md) for the detection approaches, [RANKING.md](./RANKING.md) for the winning-chance assessment, [SETUP.md](./SETUP.md) for onboarding, and [RESEARCH.md](./RESEARCH.md) for the Cognee, Tavily, public-source, and Codex guidance.
+See [UX-VARIANTS.md](./UX-VARIANTS.md) for this interface comparison, [METHODS.md](./METHODS.md) for the detection approaches, [RANKING.md](./RANKING.md) for the winning-chance assessment, [SETUP.md](./SETUP.md) for onboarding, and [RESEARCH.md](./RESEARCH.md) for the Cognee, Tavily, public-source, and Codex guidance.
