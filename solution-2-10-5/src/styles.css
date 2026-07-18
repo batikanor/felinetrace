@@ -177,14 +177,50 @@ textarea:focus-visible,
 }
 
 .simple-logo {
+  position: relative;
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 29px;
+  height: 25px;
   place-items: center;
-  border: 2px solid #2d6a4f;
-  border-radius: 50%;
-  font-size: 15px;
-  font-style: italic;
+  margin-top: 3px;
+  border-radius: 8px 8px 10px 10px;
+  color: white;
+  background: var(--green);
+  font: 800 13px/1 'Libre Franklin', sans-serif;
+  letter-spacing: -1.5px;
+  isolation: isolate;
+}
+
+.simple-logo::before,
+.simple-logo::after {
+  position: absolute;
+  top: -6px;
+  z-index: -1;
+  width: 12px;
+  height: 12px;
+  background: var(--green);
+  content: '';
+  transform: rotate(45deg);
+}
+
+.simple-logo::before { left: 2px; }
+.simple-logo::after { right: 2px; }
+
+.simple-logo > span {
+  position: relative;
+  z-index: 1;
+  transform: translateY(1px);
+}
+
+.simple-logo > i {
+  position: absolute;
+  right: -6px;
+  bottom: 2px;
+  width: 8px;
+  height: 11px;
+  border-right: 2px solid var(--green);
+  border-bottom: 2px solid var(--green);
+  border-radius: 0 0 8px;
 }
 
 .header-center {

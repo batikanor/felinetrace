@@ -138,7 +138,12 @@ function AuditWorkspace({ initialAnalysis, onAnalysis }: { initialAnalysis: Anal
 
   return <div className="simple-app">
     <header className="simple-header">
-      <div className="simple-brand"><span className="simple-logo">t</span><strong>trace</strong></div>
+      <div className="simple-brand">
+        <span className="simple-logo" role="img" aria-label="Trace cat monogram">
+          <span aria-hidden="true">tr</span><i aria-hidden="true" />
+        </span>
+        <strong>trace</strong>
+      </div>
       <div className="header-center">
         <div className="document-title"><strong>{analysis.dataset.company} · Claim Compiler</strong><span>{view === 'report' ? 'Saved' : 'Setup'}</span></div>
         <nav className="primary-tabs" role="tablist" aria-label="Primary pages">
