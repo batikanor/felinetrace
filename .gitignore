@@ -1,0 +1,17 @@
+.DS_Store
+*.log
+
+# Local dependencies and generated builds
+**/node_modules
+**/dist
+**/.vite
+motion-graphics/out/
+
+# Challenge datasets and ground truth stay local
+source-docs/data/
+source-docs/data-ground-truth/
+
+# Local environment files
+.env
+.env.*
+!.env.example

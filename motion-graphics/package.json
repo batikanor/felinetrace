@@ -1,0 +1,25 @@
+{
+  "name": "trace-motion-graphics",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "check": "tsc --noEmit",
+    "render": "remotion render src/index.ts",
+    "render:reels": "npm run render -- Cited-Memo-Reel out/cited-memo-reel.mp4 && npm run render -- Audit-Test-Lab-Reel out/audit-test-lab-reel.mp4 && npm run render -- Benchmark-Studio-Reel out/benchmark-studio-reel.mp4",
+    "render:stills": "remotion still src/index.ts Cited-Memo-Inline-Citations out/cited-memo.png --frame=120 && remotion still src/index.ts Audit-Test-Lab-Pipeline out/audit-test-lab.png --frame=120 && remotion still src/index.ts Benchmark-Studio-Four-Detectors out/benchmark-studio.png --frame=120"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.490",
+    "@remotion/google-fonts": "4.0.490",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "4.0.490"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3"
+  }
+}
