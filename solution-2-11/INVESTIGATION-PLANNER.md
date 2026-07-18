@@ -92,10 +92,10 @@ Copy `.env.example` to `.env.local` only when configuring optional services. Kee
 
 - **Cognee local:** run `services/cognee-local/start.sh`; Ollama supplies the LLM and embeddings while SQLite, LanceDB, and Kuzu persist locally.
 - **Tavily:** place the key on the proxy server. The proxy may check usage server-side and return only `usageChecked`.
-- **Codex:** authenticate the CLI separately, then run a purpose-built loopback reviewer sidecar with a read-only sandbox contract.
+- **Codex:** run `services/codex-reviewer/start.sh`; it reuses the CLI's ChatGPT sign-in and enforces ephemeral read-only structured reviews.
 
-The development status route invokes only `codex --version` and `codex login status` with short timeouts. It never invokes an agent or `codex exec`.
+The development status route invokes only `codex --version` and `codex login status` with short timeouts. Reviews go through the separate loopback sidecar.
 
 ## Persistence and reset
 
-`localStorage` key `trace.investigation.endpoint-urls.v1` stores only the three endpoint URLs. Planner runs, manual cases, source windows, and report edits are session-only. **Reset** restores default loopback URLs and clears adapter results.
+`localStorage` key `trace.investigation.endpoint-urls.v3` stores only the three endpoint URLs. Planner runs, manual cases, source windows, and report edits are session-only. **Reset** restores and retests the default loopback URLs.

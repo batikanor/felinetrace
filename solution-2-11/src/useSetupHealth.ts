@@ -34,12 +34,12 @@ export type RuntimeStatus = {
   checkedAt: string
 }
 
-const endpointStorageKey = 'trace.investigation.endpoint-urls.v2'
+const endpointStorageKey = 'trace.investigation.endpoint-urls.v3'
 
 export const defaultEndpointUrls: EndpointUrls = {
   cognee: 'http://127.0.0.1:43110/health',
   tavily: 'http://127.0.0.1:43102/health',
-  codex: 'http://127.0.0.1:43103/health',
+  codex: 'http://127.0.0.1:4010/health',
 }
 
 const idleChecks: Record<ServiceId, AdapterCheck> = {

@@ -62,9 +62,9 @@ This can avoid a separate OpenAI API key, but it is not a free-credit workaround
 
 - Codex CLI supports ChatGPT sign-in for subscription access and API-key sign-in for usage-based access.
 - `codex exec` reuses the CLI's saved authentication by default. On this development machine, `codex login status` reports **Logged in using ChatGPT**.
-- A local sidecar can therefore run read-only, structured review tasks using the user's existing Codex session and ChatGPT allowance.
+- `services/codex-reviewer` now runs read-only, structured review tasks on loopback using the user's existing Codex session and ChatGPT allowance.
 - Do not let a browser silently reuse or receive Codex credentials. Keep the SDK, app-server or `codex exec` process on localhost/server-side.
-- Default to an allowlisted dossier directory, read-only sandbox, `--ephemeral`, JSONL or JSON-schema output, and a human accept/reject step.
+- The sidecar uses a minimal working directory, read-only sandbox, `--ephemeral`, a fixed JSON schema, and a human accept/reject step.
 - Do not expose a local Codex runner to untrusted or public users. ChatGPT plan limits and credits still apply.
 - Codex is best used here as a skeptic or report-diff reviewer; deterministic code should continue to calculate amounts and joins.
 

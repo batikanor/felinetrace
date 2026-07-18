@@ -42,7 +42,7 @@ function setupStatusPlugin(env: Record<string, string>): Plugin {
           runCommand(env.CODEX_CLI_PATH || 'codex', ['login', 'status']),
           probeSanitizedAdapter(env.COGNEE_ADAPTER_URL || 'http://127.0.0.1:43110/health', 'cognee'),
           probeSanitizedAdapter(env.TAVILY_PROXY_URL, 'tavily'),
-          probeSanitizedAdapter(env.CODEX_ADAPTER_URL, 'codex'),
+          probeSanitizedAdapter(env.CODEX_ADAPTER_URL || 'http://127.0.0.1:4010/health', 'codex'),
         ])
 
         const payload = {

@@ -182,7 +182,7 @@ export function SetupPage({ controller, onBack, onNotice }: SetupPageProps) {
           </details>
           <details>
             <summary>Codex · CLI vs reviewer sidecar</summary>
-            <p><code>codex login status</code> can confirm this machine’s ChatGPT login. That does not wire review tasks. Run a loopback sidecar that exposes the read-only JSON contract; never run <code>codex exec</code> from the status route.</p>
+            <p>Run <code>services/codex-reviewer/start.sh</code>. It reuses the local ChatGPT sign-in and runs schema-validated reviews in an ephemeral read-only sandbox.</p>
           </details>
         </section>
 

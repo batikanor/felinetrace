@@ -125,9 +125,9 @@ const integrations: IntegrationSpec[] = [
     icon: TerminalSquare,
     contract: '{ service: "codex", ok: true, auth: "chatgpt", sandbox: "read-only" }',
     steps: [
-      'Install Codex locally and sign in with ChatGPT on the machine running the sidecar.',
-      'Run a loopback-only sidecar with workspace writes disabled and a fixed review schema.',
-      'CLI authentication and sidecar readiness are separate checks; this page never runs codex exec.',
+      'Run services/codex-reviewer/start.sh on this machine.',
+      'The sidecar reuses the Codex CLI ChatGPT sign-in.',
+      'Reviews are ephemeral, schema-validated, and read-only.',
     ],
     validate: (payload) => {
       if (!isObject(payload)) return { ok: false, detail: 'Expected a JSON object' }

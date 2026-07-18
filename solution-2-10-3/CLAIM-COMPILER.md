@@ -35,7 +35,7 @@ The Setup tab has three distinct layers:
 - **This machine:** sanitized dev-server detection for the Codex CLI and presence-only environment checks.
 - **Adapters:** user-configurable server health endpoints for Cognee, Tavily, and Codex.
 
-The browser persists only the three endpoint URLs under `trace:claim-compiler:endpoints:v1`. It does not persist health responses. URLs cannot contain credentials, query strings, or fragments. Plain HTTP is accepted only for `localhost`, `127.0.0.1`, or `::1`; every other host requires HTTPS. Fetches omit cookies.
+The browser persists only the three endpoint URLs under `trace:claim-compiler:endpoints:v2`. It does not persist health responses. URLs cannot contain credentials, query strings, or fragments. Plain HTTP is accepted only for `localhost`, `127.0.0.1`, or `::1`; every other host requires HTTPS. Fetches omit cookies.
 
 An HTTP 200 does not pass by itself. The response must parse as JSON and match the service contract.
 
@@ -78,7 +78,7 @@ Create the account/key outside this app, set `TAVILY_API_KEY` on the proxy serve
 }
 ```
 
-CLI authentication and reviewer-sidecar readiness are deliberately separate. The sidecar should bind loopback, disable workspace writes, accept a fixed review schema, and return suggestions only.
+Run `services/codex-reviewer/start.sh`. The loopback sidecar reuses the CLI's ChatGPT sign-in, disables workspace writes, runs ephemerally, validates a fixed review schema, and returns suggestions only.
 
 ## Local dev status bridge
 

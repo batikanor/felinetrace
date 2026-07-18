@@ -8,7 +8,7 @@ Both top variants run as complete replay demos without an account, API key, or e
 | --- | --- | --- |
 | PlateJS report and sample dossier | Ready | Editing, citations, sources, findings, and replayed method controls work locally. |
 | Codex CLI | Installed | `codex-cli 0.145.0-alpha.18` is available. |
-| Codex authentication | Ready | `codex login status` reports ChatGPT sign-in. This does not by itself mean the reviewer sidecar is wired. |
+| Codex reviewer | Local | ChatGPT sign-in and the loopback read-only reviewer sidecar are ready. |
 | Tavily | Not configured | No `TAVILY_API_KEY` is present. The replay demo still works. |
 | Cognee | Local | Docker-hosted Cognee uses local Ollama models and local SQLite/LanceDB/Kuzu stores. |
 | OpenAI Platform API | Not configured | Not required for the current Codex login path. |
@@ -33,9 +33,9 @@ Sources: [Cognee local setup](https://docs.cognee.ai/guides/local-setup), [REST 
 
 ### Codex
 
-No additional login is needed on this development machine. The safe integration is a loopback server-side adapter using the Codex SDK or stable `codex exec`; the browser never receives cached credentials.
+No additional login is needed on this development machine. Run `services/codex-reviewer/start.sh`; the browser receives only a sanitized health contract and structured review output.
 
-Use read-only and ephemeral runs, an allowlisted evidence packet, structured output validation, and explicit accept/reject. ChatGPT sign-in avoids a separate Platform API key but consumes the user's Codex/ChatGPT plan allowance. Other users must install Codex and sign in with ChatGPT, or deliberately choose API-key billing.
+The sidecar uses `codex exec --ephemeral --sandbox read-only`, a fixed output schema, a loopback-only origin policy, and a single-review concurrency limit. ChatGPT sign-in avoids a separate Platform API key but consumes the user's Codex/ChatGPT plan allowance. Other users must install Codex and sign in with ChatGPT, or deliberately choose API-key billing.
 
 Sources: [Codex authentication](https://learn.chatgpt.com/docs/auth), [Codex SDK](https://learn.chatgpt.com/docs/codex-sdk), [non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode), [app-server](https://learn.chatgpt.com/docs/app-server).
 
