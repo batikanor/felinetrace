@@ -27,6 +27,22 @@ The detector proposes a sourced claim. A skeptic searches for contradictory docu
 
 Rules, graph analysis, sequence tests, and a skeptic run in parallel. The interface exposes their agreement instead of hiding the method behind a single score.
 
+## Solution 2-6: public corroboration
+
+Internal candidates trigger focused checks against official registries, VAT and sanctions data, filings, and optionally Tavily-discovered web pages. External results can corroborate an entity but cannot prove a dossier claim.
+
+## Solution 2-7: evidence memory
+
+Cognee-style graph and vector memory connects aliases, documents, users, vendors, transactions, controls, and claims. Every recall result must resolve through its graph ID to an exact document passage before it can enter the report.
+
+## Solution 2-8: local reviewer
+
+A locally authenticated Codex sidecar challenges amounts, searches for counterevidence, and proposes sourced report edits. Runs are read-only and structured; users inspect and accept or reject every result.
+
+## Solution 2-9: adaptive router
+
+Deterministic tests and robust peer baselines run first. Memory, public checks, and a local reviewer are invoked only when a candidate needs them. Single-signal anomalies are held rather than reported.
+
 ## Benchmark dimensions
 
 - Scheme-level recall
