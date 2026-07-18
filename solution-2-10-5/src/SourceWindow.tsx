@@ -10,7 +10,7 @@ import {
   Move,
   X,
 } from 'lucide-react'
-import type { Source } from './caseData'
+import type { Source } from './analysis'
 
 export type OpenSourceWindow = {
   source: Source
@@ -225,7 +225,7 @@ export function SourceWindow({ item, onClose, onFocus, onMove, onCopied }: Sourc
 }
 
 function SheetPreview({ source }: { source: Source }) {
-  const config = sheetPreviews[source.id] ?? {
+  const config = source.preview ?? sheetPreviews[source.id] ?? {
     columns: ['Location', 'Evidence'],
     rows: [{ label: source.location, cells: [source.location, source.passage] }],
   }

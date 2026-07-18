@@ -160,6 +160,37 @@
   padding: 9px 12px 7px;
 }
 
+.method-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 10px 16px;
+  border-top: 1px solid #e2e8e4;
+  background: #f8faf8;
+}
+
+.method-strip > small { margin-right: 5px; color: #718078; font-size: 9px; font-weight: 850; letter-spacing: .09em; }
+.method-strip > span { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d8e0da; border-radius: 999px; padding: 5px 9px; color: #829087; background: white; font-size: 10px; font-weight: 750; }
+.method-strip > span.pass { border-color: #a9cbb6; color: #205a3d; background: #eaf5ed; }
+.method-strip > span.fail { border-color: #ebc0b9; color: #963a2d; background: #fff0ed; }
+.method-strip > span.running { border-color: #d9c68d; color: #735f1f; background: #fff8dc; }
+
+.specialist-output { border-top: 1px solid #e2e8e4; background: #fbfcfb; }
+.specialist-output > summary { cursor: pointer; padding: 10px 16px; color: #2c6247; font-size: 11px; font-weight: 800; }
+.specialist-output > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 16px 14px; }
+.specialist-output article { display: grid; align-content: start; gap: 5px; min-height: 68px; border: 1px solid #dae3dd; border-radius: 8px; padding: 9px; color: #6e7d74; background: white; font-size: 10px; }
+.specialist-output article.pass { border-color: #b9d6c4; color: #285d43; background: #f1f8f3; }
+.specialist-output article.fail { border-color: #edc6bf; color: #8b3a2e; background: #fff3f1; }
+.specialist-output article span { line-height: 1.35; }
+.specialist-output article a { overflow: hidden; color: #276a4a; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 760px) { .specialist-output > div { grid-template-columns: 1fr; } }
+
+.inspector-heading small { max-width: 56%; color: #718078; font-size: 10px; text-align: right; }
+.compiler-empty { display: flex; align-items: center; gap: 10px; border: 1px solid #d5ded8; border-radius: 12px; padding: 20px; color: #385a49; background: white; }
+.compiler-empty span { color: #74837a; }
+
 .compiler-toolbar > div {
   min-width: 0;
 }

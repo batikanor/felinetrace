@@ -5,11 +5,15 @@
 **/node_modules
 **/dist
 **/.vite
+**/.venv
+**/__pycache__
+**/.runtime
 motion-graphics/out/
 
 # Challenge datasets and ground truth stay local
 source-docs/data/
 source-docs/data-ground-truth/
+source-docs/final-data/
 
 # Local environment files
 .env

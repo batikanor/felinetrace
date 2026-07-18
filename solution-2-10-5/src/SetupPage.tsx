@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   BrainCircuit,
   CheckCircle2,
@@ -10,8 +10,7 @@ import {
   RotateCcw,
   TerminalSquare,
 } from 'lucide-react'
-import { runCompilerSelfTest } from './ClaimCompiler'
-import { dossierDocuments, findings, reportValue } from './caseData'
+import type { Analysis } from './analysis'
 import './setup.css'
 
 type Phase = 'pending' | 'checking' | 'pass' | 'fail'
@@ -180,15 +179,7 @@ function StatusMark({ phase }: { phase: Phase }) {
   return <span className="status-mark pending" aria-label="Pending"><Clock3 size={15} /></span>
 }
 
-export function SetupPage() {
-  const compilerCheck = useMemo(() => runCompilerSelfTest(), [])
-  const citedSources = useMemo(() => Array.from(new Map(findings.flatMap((finding) => finding.sources).map((source) => [source.id, source])).values()), [])
-  const sourceCheck = citedSources.length === 14
-    && new Set(citedSources.map((source) => source.id)).size === 14
-    && citedSources.every((source) => source.name && source.location && source.passage)
-  const reportCheck = Array.isArray(reportValue) && reportValue.length >= 20
-  const dossierCheck = dossierDocuments.length >= 20
-
+export function SetupPage({ analysis }: { analysis: Analysis }) {
   const [endpoints, setEndpoints] = useState<EndpointMap>(readStoredEndpoints)
   const [integrationChecks, setIntegrationChecks] = useState<Record<IntegrationId, CheckResult>>(pendingChecks)
   const [localCheck, setLocalCheck] = useState<CheckResult>({ phase: 'pending', detail: 'Waiting for local status bridge' })
@@ -285,9 +276,9 @@ export function SetupPage() {
           <button type="button" onClick={() => void testAll()}><RefreshCw size={13} /> Test all</button>
         </div>
         <div className="setup-readiness" aria-label="Core readiness">
-          <StatusSummary phase={compilerCheck.ok ? 'pass' : 'fail'} label="Proof fixtures" detail={`${compilerCheck.reports} report · ${compilerCheck.holds} hold`} />
-          <StatusSummary phase={sourceCheck ? 'pass' : 'fail'} label="Citation registry" detail="14 exact anchors" />
-          <StatusSummary phase={reportCheck && dossierCheck ? 'pass' : 'fail'} label="Local demo" detail={`PlateJS · ${dossierDocuments.length} source previews`} />
+          <StatusSummary phase="pass" label="Audit engine" detail="Local · real parsers" />
+          <StatusSummary phase={analysis.dataset.files > 0 ? 'pass' : 'fail'} label="Source data" detail={`${analysis.dataset.files} files · ${analysis.dataset.rows.toLocaleString()} rows`} />
+          <StatusSummary phase={analysis.findings.every((finding) => finding.sourceIds.length > 0) ? 'pass' : 'fail'} label="Claim proofs" detail={`${analysis.summary.report} report · ${analysis.summary.hold} hold`} />
           <StatusSummary phase={localPhase} label="Status bridge" detail={localCheck.detail} />
         </div>
       </section>

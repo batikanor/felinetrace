@@ -54,6 +54,107 @@ textarea:focus-visible,
   background: #f2f4f1;
 }
 
+.engine-state {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  color: #173f2d;
+  background: #f4f7f4;
+  font-size: 18px;
+}
+
+.engine-state svg,
+.source-progress svg,
+.analyze-button:disabled svg {
+  animation: spin 1s linear infinite;
+}
+
+.engine-state span { color: #66776d; }
+.engine-state button { border: 0; border-radius: 8px; padding: 10px 18px; color: white; background: #174a34; }
+
+.source-data-button { white-space: nowrap; }
+
+.source-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(11, 35, 24, 0.56);
+  backdrop-filter: blur(4px);
+}
+
+.source-dialog {
+  width: min(760px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  border: 1px solid #cad8cf;
+  border-radius: 18px;
+  padding: 26px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(10, 45, 29, 0.28);
+}
+
+.source-dialog > header,
+.source-dialog > footer {
+  display: flex;
+  align-items: center;
+}
+
+.source-dialog > header { justify-content: space-between; margin-bottom: 22px; }
+.source-dialog > header small { color: #397458; font-weight: 800; letter-spacing: .12em; }
+.source-dialog > header h2 { margin: 4px 0 0; color: #153d2b; font-size: 28px; }
+.source-dialog > header button { border: 0; background: transparent; color: #527061; }
+
+.dataset-name { display: grid; gap: 8px; color: #345345; font-weight: 750; }
+.dataset-name input { height: 50px; border: 1px solid #cbd8d0; border-radius: 10px; padding: 0 14px; font: inherit; font-size: 17px; }
+
+.source-pickers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.source-pickers > input { display: none; }
+.source-pickers > button {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 86px;
+  border: 1px solid #b9d2c3;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: left;
+  color: #174a34;
+  background: #f1f8f4;
+}
+.source-pickers span { display: grid; gap: 3px; }
+.source-pickers strong { font-size: 17px; }
+.source-pickers small { color: #688073; }
+
+.file-selection { display: flex; align-items: center; gap: 10px; min-height: 58px; margin: 14px 0; border-radius: 10px; padding: 12px 15px; color: #76877d; background: #f5f7f5; }
+.file-selection.ready { color: #19553a; background: #e6f5eb; }
+.file-selection span { display: grid; gap: 2px; }
+
+.specialist-options { border: 0; margin: 18px 0 0; padding: 0; }
+.specialist-options legend { margin-bottom: 10px; color: #345345; font-weight: 800; }
+.specialist-options > label { display: block; margin-bottom: 8px; }
+.specialist-options > label > input { position: absolute; opacity: 0; }
+.specialist-options > label > span { display: flex; align-items: center; gap: 12px; border: 1px solid #d4ded8; border-radius: 10px; padding: 12px 14px; color: #315444; background: white; }
+.specialist-options > label > input:checked + span { border-color: #68a17f; background: #edf8f1; box-shadow: inset 4px 0 #2a6c4a; }
+.specialist-options > label > span > span { display: grid; gap: 2px; }
+.specialist-options small { color: #718078; }
+
+.source-error { margin-top: 12px; border-radius: 8px; padding: 11px 13px; color: #8d2f25; background: #fdecea; }
+.source-progress { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: #1d5a3d; font-weight: 750; }
+.source-dialog > footer { gap: 10px; margin-top: 22px; border-top: 1px solid #e2e8e4; padding-top: 18px; }
+.source-dialog > footer span { flex: 1; }
+.source-dialog > footer button { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; border: 1px solid #cbd8d0; border-radius: 9px; padding: 0 15px; color: #244c39; background: white; font-weight: 750; }
+.source-dialog > footer button.primary { border-color: #174a34; color: white; background: #174a34; }
+
+@media (max-width: 720px) {
+  .source-pickers { grid-template-columns: 1fr; }
+  .source-dialog { padding: 20px; }
+}
+
 .simple-header {
   position: sticky;
   top: 0;
