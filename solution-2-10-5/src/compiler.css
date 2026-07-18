@@ -160,21 +160,21 @@
   padding: 9px 12px 7px;
 }
 
-.method-strip {
+.method-results {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 18px;
   padding: 10px 16px;
   border-top: 1px solid #e2e8e4;
   background: #f8faf8;
 }
 
-.method-strip > small { margin-right: 5px; color: #718078; font-size: 9px; font-weight: 850; letter-spacing: .09em; }
-.method-strip > span { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d8e0da; border-radius: 999px; padding: 5px 9px; color: #829087; background: white; font-size: 10px; font-weight: 750; }
-.method-strip > span.pass { border-color: #a9cbb6; color: #205a3d; background: #eaf5ed; }
-.method-strip > span.fail { border-color: #ebc0b9; color: #963a2d; background: #fff0ed; }
-.method-strip > span.running { border-color: #d9c68d; color: #735f1f; background: #fff8dc; }
+.method-results > span { display: inline-flex; align-items: center; gap: 6px; color: #6d7b73; font-size: 10px; }
+.method-results > span strong { margin-right: 2px; font-weight: 850; }
+.method-results > span.pass { color: #246044; }
+.method-results > span.fail { color: #963a2d; }
+.method-results > span.running { color: #735f1f; }
 
 .specialist-output { border-top: 1px solid #e2e8e4; background: #fbfcfb; }
 .specialist-output > summary { cursor: pointer; padding: 10px 16px; color: #2c6247; font-size: 11px; font-weight: 800; }

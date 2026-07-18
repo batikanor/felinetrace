@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
-  Activity,
   ArrowRight,
   BadgeCheck,
-  BrainCircuit,
   Check,
   ChevronDown,
   ChevronUp,
@@ -12,14 +10,11 @@ import {
   FileSearch,
   FileSpreadsheet,
   FileText,
-  Globe2,
   Link2,
   LoaderCircle,
   Play,
   Plus,
   Search,
-  ShieldCheck,
-  TerminalSquare,
   X,
 } from 'lucide-react'
 import type { Finding, ProofGate, Source, SpecialistResult } from './analysis'
@@ -43,14 +38,6 @@ const gateMeta: Record<ProofGate['id'], { step: string; label: string }> = {
   counter: { step: '03', label: 'Exclude' },
   resolver: { step: '04', label: 'Resolve' },
   certificate: { step: '05', label: 'Certificate' },
-}
-
-const methodMeta = {
-  deterministic: { label: 'Tests', icon: Activity },
-  join: { label: 'Joins', icon: ShieldCheck },
-  memory: { label: 'Cognee', icon: BrainCircuit },
-  public: { label: 'Tavily', icon: Globe2 },
-  review: { label: 'Codex', icon: TerminalSquare },
 }
 
 type ClaimCompilerProps = {
@@ -84,6 +71,17 @@ export function ClaimCompiler({ findings, holds, sources, specialists, busy, onS
   if (!selectedClaim || !activeGate) {
     return <section className="claim-compiler compiler-empty"><CircleAlert size={18} /><strong>No reportable claims</strong><span>The uploaded files parsed successfully, but no current rule produced a claim.</span></section>
   }
+
+  const methodResults = [
+    { label: 'Tests', phase: selectedClaim.gates.find((gate) => gate.id === 'facts')?.status === 'pass' ? 'pass' : 'fail' },
+    { label: 'Joins', phase: selectedClaim.gates.find((gate) => gate.id === 'joins')?.status === 'pass' ? 'pass' : 'fail' },
+    { label: 'Cognee', phase: specialists.cognee.phase },
+    { label: 'Tavily', phase: specialists.tavily.phase },
+    { label: 'Codex', phase: specialists.codex.phase },
+  ]
+  const passedMethods = methodResults.filter((method) => method.phase === 'pass').map((method) => method.label)
+  const failedMethods = methodResults.filter((method) => method.phase === 'fail').map((method) => method.label)
+  const runningMethods = methodResults.filter((method) => method.phase === 'running').map((method) => method.label)
 
   const selectClaim = (claim: Finding) => {
     setSelectedClaimId(claim.id)
@@ -131,14 +129,10 @@ export function ClaimCompiler({ findings, holds, sources, specialists, busy, onS
         </button>
       </div>
 
-      <div className="method-strip" aria-label="Methods used">
-        <small>METHODS USED</small>
-        {Object.entries(methodMeta).map(([method, copy]) => {
-          const Icon = copy.icon
-          const specialist = method === 'memory' ? specialists.cognee : method === 'public' ? specialists.tavily : method === 'review' ? specialists.codex : undefined
-          const phase = specialist?.phase ?? (selectedClaim.methods.includes(method) ? 'pass' : 'idle')
-          return <span className={phase} key={method} title={specialist?.detail}><Icon size={11} />{copy.label}{phase === 'pass' ? ' ✓' : phase === 'fail' ? ' ×' : phase === 'running' ? ' …' : ''}</span>
-        })}
+      <div className="method-results" aria-label="Check results">
+        {passedMethods.length > 0 && <span className="pass"><Check size={12} /><strong>Passed</strong>{passedMethods.join(', ')}</span>}
+        {failedMethods.length > 0 && <span className="fail"><X size={12} /><strong>Failed</strong>{failedMethods.join(', ')}</span>}
+        {runningMethods.length > 0 && <span className="running"><LoaderCircle size={12} className="compiler-spin" /><strong>Checking</strong>{runningMethods.join(', ')}</span>}
       </div>
 
       {Object.values(specialists).some((status) => status.phase !== 'idle') && <details className="specialist-output">
