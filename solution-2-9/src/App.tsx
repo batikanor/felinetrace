@@ -10,6 +10,7 @@ import { Plate, PlateContent, usePlateEditor } from 'platejs/react'
 import {
   ArrowLeft,
   Bold,
+  BookOpenCheck,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -23,6 +24,7 @@ import {
   MoreHorizontal,
   RefreshCw,
   Search,
+  Settings2,
   ShieldCheck,
   Underline,
   Users,
@@ -41,6 +43,7 @@ import { SourceWindow } from './SourceWindow'
 import type { OpenSourceWindow } from './SourceWindow'
 import { MethodStudio } from './MethodStudio'
 import type { ManualCase } from './MethodStudio'
+import { SetupPage } from './SetupPage'
 
 type Comment = {
   id: number
@@ -119,6 +122,7 @@ function App() {
     value: reportDocumentValue,
   })
   const [rightTab, setRightTab] = useState<'findings' | 'comments'>('findings')
+  const [view, setView] = useState<'report' | 'setup'>('report')
   const [panelOpen, setPanelOpen] = useState(false)
   const [expandedFinding, setExpandedFinding] = useState('F-01')
   const [activeBundle, setActiveBundle] = useState('F-01')
@@ -202,16 +206,28 @@ function App() {
     if (source) openSourceWindow(source)
   }
 
+  const openView = (nextView: 'report' | 'setup') => {
+    setView(nextView)
+    setPanelOpen(false)
+    setSourceWindows([])
+  }
+
   return (
     <div className="simple-app">
       <header className="simple-header">
         <div className="simple-brand"><span className="simple-logo">t</span><strong>trace</strong></div>
-        <div className="document-title">
-          <strong>Muster Verpackungen · Adaptive router</strong>
-          <span>Saved</span>
+        <div className="header-center">
+          <div className="document-title">
+            <strong>Muster Verpackungen · Adaptive router</strong>
+            <span>{view === 'report' ? 'Saved' : 'Setup'}</span>
+          </div>
+          <nav className="primary-tabs" role="tablist" aria-label="Primary pages">
+            <button type="button" role="tab" aria-selected={view === 'report'} className={view === 'report' ? 'active' : ''} onClick={() => openView('report')}><BookOpenCheck size={13} /> Report</button>
+            <button type="button" role="tab" aria-selected={view === 'setup'} className={view === 'setup' ? 'active' : ''} onClick={() => openView('setup')}><Settings2 size={13} /> Setup</button>
+          </nav>
         </div>
         <div className="header-actions">
-          <div className="collaborators"><span>AH</span><span>JW</span></div>
+          {view === 'report' && <><div className="collaborators"><span>AH</span><span>JW</span></div>
           <button type="button" className="quiet-button" onClick={() => notify('Share link copied')}><Users size={15} /> Share</button>
           <button
             type="button"
@@ -223,10 +239,11 @@ function App() {
             }}
           >
             <RefreshCw size={14} /> Run routed audit
-          </button>
+          </button></>}
         </div>
       </header>
 
+      {view === 'report' ? <>
       <div className="editor-toolbar">
         <button type="button" title="Back"><ArrowLeft size={16} /></button>
         <span className="toolbar-rule" />
@@ -357,6 +374,7 @@ function App() {
         />
       ))}
       {toast && <div className="toast"><Check size={15} /> {toast}</div>}
+      </> : <SetupPage />}
     </div>
   )
 }

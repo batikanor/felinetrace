@@ -86,6 +86,14 @@ textarea:focus-visible,
   font-style: italic;
 }
 
+.header-center {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  gap: 16px;
+}
+
 .document-title {
   min-width: 0;
 }
@@ -111,6 +119,42 @@ textarea:focus-visible,
 .document-title span::before {
   content: '✓';
   margin-right: 3px;
+}
+
+.primary-tabs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  background: #f1f3f0;
+  border: 1px solid #e0e4e0;
+  border-radius: 7px;
+}
+
+.primary-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 27px;
+  gap: 5px;
+  padding: 0 9px;
+  color: #738078;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-tabs button:hover {
+  color: #47574e;
+}
+
+.primary-tabs button.active {
+  color: #44375f;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(33, 45, 38, 0.11);
 }
 
 .header-actions,
@@ -2048,6 +2092,20 @@ textarea:focus-visible,
 
   .document-title {
     text-align: center;
+  }
+
+  .header-center {
+    display: flex;
+    justify-content: center;
+  }
+
+  .header-center .document-title {
+    display: none;
+  }
+
+  .primary-tabs button {
+    padding-inline: 7px;
+    font-size: 7px;
   }
 
   .collaborators,

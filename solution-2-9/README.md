@@ -12,6 +12,8 @@ The cited PlateJS audit memo with a cost-aware method router and manual case lin
 
 Every reported claim still requires an exact dossier passage. The router holds single-signal leads instead of turning every anomaly into a finding.
 
+Use the **Setup** tab for local readiness, Codex authentication, optional credentials, and adapter health checks.
+
 ## Run
 
 ```bash
