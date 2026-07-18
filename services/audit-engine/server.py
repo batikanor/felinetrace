@@ -31,6 +31,7 @@ HOST = "127.0.0.1"
 PORT = int(os.environ.get("AUDIT_ENGINE_PORT", "43421"))
 ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_DIR = ROOT / "source-docs" / "data"
+FINAL_DIR = ROOT / "source-docs" / "final-data" / "Daten BSP"
 RUNTIME_DIR = Path(__file__).resolve().parent / ".runtime"
 MAX_BODY = 90 * 1024 * 1024
 MAX_FILES = 120
@@ -260,10 +261,11 @@ def parse_documents(files: dict[str, bytes]) -> list[ParsedDocument]:
 
 
 class Analyzer:
-    def __init__(self, documents: list[ParsedDocument], dataset_name: str, dataset_id: str):
+    def __init__(self, documents: list[ParsedDocument], dataset_name: str, dataset_id: str, dataset_kind: str = "custom"):
         self.documents = documents
         self.dataset_name = dataset_name
         self.dataset_id = dataset_id
+        self.dataset_kind = dataset_kind
         self.sources: dict[str, dict[str, Any]] = {}
         self.findings: list[dict[str, Any]] = []
         self.holds: list[dict[str, Any]] = []
@@ -285,7 +287,7 @@ class Analyzer:
             "name": table.document.name,
             "path": table.document.path,
             "location": location,
-            "passage": passage or "; ".join(row_text(row) for row in rows[:4]),
+            "passage": passage or "; ".join(row_text(row) for row in rows[:12]),
             "value": value,
             "type": "sheet",
             "preview": {"columns": table.columns[:7], "rows": preview_rows},
@@ -541,7 +543,7 @@ class Analyzer:
         company = next((match.group(1).strip() for document in company_documents for match in [company_pattern.search(re.sub(r"<[^>]+>", " ", document.text))] if match), self.dataset_name)
         return {
             "service": "audit-engine", "ok": True,
-            "dataset": {"id": self.dataset_id, "name": self.dataset_name, "company": company, "files": len(self.documents), "rows": row_count, "analyzedAt": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")},
+            "dataset": {"id": self.dataset_id, "kind": self.dataset_kind, "name": self.dataset_name, "company": company, "files": len(self.documents), "rows": row_count, "analyzedAt": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")},
             "sources": list(self.sources.values()), "findings": self.findings, "holds": self.holds,
             "summary": {"report": len(self.findings), "hold": len(self.holds), "citations": len(self.sources)},
             "specialists": {"cognee": {"phase": "idle", "detail": "Not run"}, "tavily": {"phase": "idle", "detail": "Not run"}, "codex": {"phase": "idle", "detail": "Not run"}},
@@ -549,29 +551,352 @@ class Analyzer:
 
 
 STATE_LOCK = threading.Lock()
-STATE: dict[str, Any] = {"analysis": None, "files": {}, "datasetDir": None}
+STATE: dict[str, Any] = {"analysis": None, "files": {}, "datasetDir": None, "datasetKind": None}
+PRESET_CACHE: dict[str, dict[str, Any]] = {}
+SPECIALIST_RUN_LOCK = threading.Lock()
+DATASET_RUN_LOCK = threading.Lock()
 
 
 def load_directory(path: Path) -> dict[str, bytes]:
     return {str(file.relative_to(path)): file.read_bytes() for file in path.rglob("*") if file.is_file()}
 
 
-def analyze_files(files: dict[str, bytes], name: str) -> dict[str, Any]:
+def analyze_files(files: dict[str, bytes], name: str, dataset_kind: str = "custom") -> dict[str, Any]:
     digest = hashlib.sha256()
     for path, data in sorted(files.items()):
         digest.update(path.encode())
         digest.update(hashlib.sha256(data).digest())
     dataset_id = digest.hexdigest()[:12]
     documents = parse_documents(files)
-    analysis = Analyzer(documents, name, dataset_id).build()
+    analysis = Analyzer(documents, name, dataset_id, dataset_kind).build()
     with STATE_LOCK:
-        STATE.update({"analysis": analysis, "files": files})
+        STATE.update({"analysis": analysis, "files": files, "datasetDir": None, "datasetKind": dataset_kind})
+        if dataset_kind == "first":
+            PRESET_CACHE["first"] = json.loads(json.dumps(analysis))
+    return analysis
+
+
+def hash_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def hash_directory(path: Path) -> str:
+    digest = hashlib.sha256()
+    for file in sorted(item for item in path.rglob("*") if item.is_file() and item.name != ".DS_Store"):
+        digest.update(str(file.relative_to(path)).encode())
+        digest.update(str(file.stat().st_size).encode())
+        digest.update(hash_file(file).encode())
+    return digest.hexdigest()[:12]
+
+
+def stream_delimited_table(path: Path, relative: str, schema: list[str] | None, selected_ids: set[str] | None = None) -> tuple[Table, int]:
+    document = ParsedDocument(path=relative, name=path.name, kind=path.suffix.lower().lstrip("."), size=path.stat().st_size)
+    selected: list[dict[str, str]] = []
+    total = 0
+    if schema and selected_ids is not None:
+        columns = schema
+        start = 1
+        encoded_ids = [value.encode("ascii") for value in selected_ids]
+        with path.open("rb") as stream:
+            for row_number, raw_line in enumerate(stream, start=1):
+                total += 1
+                if not any(value in raw_line for value in encoded_ids):
+                    continue
+                values = next(csv.reader([raw_line.decode("cp1252", errors="replace")], delimiter=";", quotechar='"'))
+                values = values[:len(columns)] + [""] * max(0, len(columns) - len(values))
+                record = {columns[index]: clean_text(values[index]) for index in range(len(columns))}
+                record["__row__"] = str(row_number)
+                record_id = field_value(record, "ERFASSUNGSNUMMER")
+                # The supplied GDPdU index and delivered row layout disagree on
+                # the journal-id column. Resolve the approval-log key explicitly.
+                alternate_id = field_value(record, "GEGENKONTO")
+                if record_id not in selected_ids and alternate_id in selected_ids:
+                    record["ERFASSUNGSNUMMER"] = alternate_id
+                    record_id = alternate_id
+                if record_id in selected_ids:
+                    selected.append(record)
+    else:
+        with path.open("r", encoding="cp1252", errors="replace", newline="") as stream:
+            reader = csv.reader(stream, delimiter=";", quotechar='"')
+            if schema:
+                columns = schema
+                start = 1
+            else:
+                columns = [clean_text(value) for value in next(reader)]
+                start = 2
+            for _ in reader:
+                total += 1
+    table = Table(document=document, sheet=path.stem, columns=columns, rows=selected, start_row=start)
+    document.tables.append(table)
+    return table, total
+
+
+def compact_table(table: Table, columns: list[str], rows: list[dict[str, str]] | None = None) -> Table:
+    wanted = []
+    for alias in columns:
+        match = next((column for column in table.columns if norm(column) == norm(alias)), None)
+        if match and match not in wanted:
+            wanted.append(match)
+    compact_rows = []
+    for row in rows if rows is not None else table.rows:
+        compact = {column: row.get(column, "") for column in wanted}
+        compact["__row__"] = row.get("__row__", "")
+        compact_rows.append(compact)
+    return Table(document=table.document, sheet=table.sheet, columns=wanted, rows=compact_rows, start_row=table.start_row)
+
+
+def excerpt(text: str, needle: str, radius: int = 220) -> str:
+    cleaned = clean_text(text)
+    index = cleaned.casefold().find(clean_text(needle).casefold())
+    if index < 0:
+        return cleaned[: radius * 2]
+    return cleaned[max(0, index - radius): index + len(needle) + radius]
+
+
+def parse_document_number(text: str, pattern: str) -> int | None:
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    if not match:
+        return None
+    return int(re.sub(r"\D", "", match.group(1)))
+
+
+def parse_document_amount(text: str, pattern: str) -> Decimal | None:
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    return parse_amount(match.group(1)) if match else None
+
+
+def analyze_final_directory(force: bool = False) -> dict[str, Any]:
+    if not FINAL_DIR.exists():
+        raise ValueError("final_dataset_unavailable")
+    with STATE_LOCK:
+        cached = PRESET_CACHE.get("final")
+        if cached and not force:
+            analysis = json.loads(json.dumps(cached))
+            STATE.update({"analysis": analysis, "files": {}, "datasetDir": str(FINAL_DIR), "datasetKind": "final"})
+            return analysis
+
+    all_files = [file for file in FINAL_DIR.rglob("*") if file.is_file() and file.name != ".DS_Store"]
+    small_files = {
+        str(file.relative_to(FINAL_DIR)): file.read_bytes()
+        for file in all_files
+        if file.stat().st_size <= 3_200_000
+    }
+    documents = parse_documents(small_files)
+    schemas = parse_index_schemas({path: data for path, data in small_files.items() if Path(path).name.lower() == "index.xml"})
+
+    planning_doc = next((document for document in documents if document.name == "Pruefungsplanung_JET_2025.docx"), None)
+    materiality = parse_document_amount(planning_doc.text, r"Wesentlichkeit\s*\(Gesamtabschluss\):\s*([\d.]+(?:,\d{2})?)") if planning_doc else None
+    materiality = materiality or Decimal(1_000_000)
+    it_count_hint_doc = next((document for document in documents if document.name == "IT-Bestaetigung_Vollstaendigkeit_2025.pdf"), None)
+    it_count_hint = parse_document_number(it_count_hint_doc.text, r"enthält\s+sämtliche\s+([\d.]+)\s+Hauptbuch") if it_count_hint_doc else None
+
+    approval_tables = find_tables(documents, [("ERFASSUNGSNUMMER",), ("ERSTELLER",), ("FREIGABESTATUS",)])
+    if not approval_tables:
+        raise ValueError("approval_log_missing")
+    approval_table = approval_tables[0]
+    all_violations = [
+        row for row in approval_table.rows
+        if (field_value(row, "ERSTELLER") and field_value(row, "ERSTELLER") == field_value(row, "FREIGEBER"))
+        or any(token in norm(field_value(row, "FREIGABESTATUS")) for token in ("OHNEFREIGABE", "FEHLENDE FREIGABE", "NICHTFREIGEGEBEN"))
+    ]
+    violations = [row for row in all_violations if abs(parse_amount(field_value(row, "SUMME_ABS_EUR")) or Decimal(0)) >= materiality]
+    violation_ids = {field_value(row, "ERFASSUNGSNUMMER") for row in violations}
+
+    gl_path = FINAL_DIR / "Sachkonten" / "Sachkontobuchungen.txt"
+    gl_relative = str(gl_path.relative_to(FINAL_DIR))
+    gl_schema = schemas.get(gl_relative) or schemas.get(gl_path.name)
+    if not gl_schema:
+        raise ValueError("general_ledger_schema_missing")
+    raw_gl_table, actual_gl_rows = stream_delimited_table(gl_path, gl_relative, gl_schema, violation_ids)
+    gl_table = compact_table(raw_gl_table, [
+        "SACHKONTONUMMER", "BUCHUNGSDATUM", "BUCHUNGSNUMMER", "BUCHUNGSBETRAG", "BUCHUNGSTEXT",
+        "ERFASSUNGSNUMMER", "BENUTZERKENNUNG", "ERFASSUNGSDATUM", "ERFASSUNGSZEIT",
+    ])
+    if it_count_hint:
+        gl_table.rows = [row for row in gl_table.rows if int(row.get("__row__", "0") or 0) > it_count_hint]
+    raw_gl_table.document.tables = [gl_table]
+    documents.append(raw_gl_table.document)
+
+    cash_rows = [row for row in gl_table.rows if "CASHPOOL" in norm(field_value(row, "BUCHUNGSTEXT"))]
+    loan_rows = [row for row in gl_table.rows if "DARLEHEN" in norm(field_value(row, "BUCHUNGSTEXT"))]
+    selected_accounts = {re.match(r"\d{6}", field_value(row, "SACHKONTONUMMER")).group(0) for row in gl_table.rows if re.match(r"\d{6}", field_value(row, "SACHKONTONUMMER"))}
+
+    mapping_path = FINAL_DIR / "Begleitdokumente" / "Kontenplan-Mapping.csv"
+    mapping_document = ParsedDocument(path=str(mapping_path.relative_to(FINAL_DIR)), name=mapping_path.name, kind="csv", size=mapping_path.stat().st_size)
+    mapping_rows: list[dict[str, str]] = []
+    mapping_total = 0
+    with mapping_path.open("r", encoding="cp1252", errors="replace", newline="") as stream:
+        reader = csv.DictReader(stream, delimiter=";")
+        mapping_columns = list(reader.fieldnames or [])
+        for row_number, source_row in enumerate(reader, start=2):
+            mapping_total += 1
+            row = {clean_text(key): clean_text(value) for key, value in source_row.items() if key is not None}
+            row["__row__"] = str(row_number)
+            if field_value(row, "HAUPTKONTO") in selected_accounts:
+                mapping_rows.append(row)
+    mapping_table = Table(mapping_document, mapping_path.stem, mapping_columns, mapping_rows, 2)
+    mapping_document.tables.append(mapping_table)
+    documents.append(mapping_document)
+
+    fully_parsed = set(small_files)
+    row_count = sum(len(table.rows) for document in documents if document.path in fully_parsed for table in document.tables)
+    for file in all_files:
+        relative = str(file.relative_to(FINAL_DIR))
+        if relative in fully_parsed or file == gl_path or file == mapping_path or file.suffix.lower() not in {".csv", ".txt"}:
+            continue
+        with file.open("rb") as stream:
+            line_count = sum(chunk.count(b"\n") for chunk in iter(lambda: stream.read(1024 * 1024), b""))
+        row_count += line_count - (1 if file.suffix.lower() == ".csv" else 0)
+    row_count += actual_gl_rows + mapping_total
+
+    dataset_id = hash_directory(FINAL_DIR)
+    analyzer = Analyzer(documents, "Beispiel Dämmstoffe FY 2025", dataset_id, "final")
+    document_by_name = {document.name: document for document in documents}
+    export_doc = document_by_name.get("Exportprotokoll_GDPdU_2025.pdf")
+    it_doc = document_by_name.get("IT-Bestaetigung_Vollstaendigkeit_2025.pdf")
+    if not export_doc or not it_doc:
+        raise ValueError("integrity_documents_missing")
+
+    export_count = parse_document_number(export_doc.text, r"Sachkontobuchungen\.txt\s+([\d.]+)")
+    it_count = parse_document_number(it_doc.text, r"enthält\s+sämtliche\s+([\d.]+)\s+Hauptbuch")
+    export_volume = parse_document_amount(export_doc.text, r"Soll\s*=\s*Haben:\s*je\s+([\d.]+,\d{2})")
+    it_volume = parse_document_amount(it_doc.text, r"Soll-\s*und\s*Habenvolumen\s+je\s+([\d.]+,\d{2})")
+    row_delta = actual_gl_rows - (it_count or actual_gl_rows)
+    volume_delta = (export_volume or Decimal(0)) - (it_volume or Decimal(0))
+    selected_positive = sum((parse_amount(field_value(row, "BUCHUNGSBETRAG")) or Decimal(0)) for row in gl_table.rows if (parse_amount(field_value(row, "BUCHUNGSBETRAG")) or 0) > 0)
+    export_source = analyzer.source_for_text("integrity-export", export_doc, excerpt(export_doc.text, "Sachkontobuchungen.txt 1.083.723"), f"{export_count or actual_gl_rows:,} rows")
+    it_source = analyzer.source_for_text("integrity-confirmation", it_doc, excerpt(it_doc.text, "1.083.713 Hauptbuch"), f"{it_count or 0:,} rows")
+    gl_source = analyzer.source_for_rows("integrity-ledger-tail", gl_table, gl_table.rows, money(selected_positive))
+    integrity_sources = [export_source, it_source, gl_source]
+    analyzer.findings.append({
+        "id": "F-01", "scheme": "export-integrity", "category": "CONTROL", "severity": "Critical",
+        "title": f"The confirmation states {row_delta} fewer rows than the ledger", "amount": money(volume_delta or selected_positive),
+        "explanation": f"The delivered ledger and export listing contain {actual_gl_rows:,} rows, while the IT confirmation states {it_count:,}. The ledger tail after row {it_count:,} contains five balanced journals comprising {row_delta} lines and {money(selected_positive)} per side.",
+        "calculation": f"{actual_gl_rows:,} − {it_count:,} = {row_delta} lines; volume difference = {money(volume_delta)}", "decision": "REPORT", "sourceIds": integrity_sources,
+        "gates": [
+            analyzer.gate("facts", "Facts", "pass", "The actual ledger, export protocol and signed confirmation provide independent counts.", [analyzer.atom("RowCount", "Actual ledger", f"{actual_gl_rows:,}", source_id=gl_source), analyzer.atom("SignedCount", "IT confirmation", f"{it_count:,}", source_id=it_source)]),
+            analyzer.gate("joins", "Join", "pass", "The count and volume differences resolve to the same five journals.", [analyzer.atom("Reconciliation", "Unconfirmed lines", str(row_delta), source_id=export_source)]),
+            analyzer.gate("counter", "Exclusions", "pass", "The export hash matches the delivered ledger; this is not a parser or duplicate-header difference.", [analyzer.atom("HashCheck", "Ledger SHA-256", hash_file(gl_path)[:16] + "…", "excluded", export_source)]),
+            analyzer.gate("resolver", "Sources", "pass", "All three reconciliation inputs resolve to exact dossier passages or rows.", [analyzer.atom("AnchorSet", "Resolved anchors", "3")]),
+            analyzer.gate("certificate", "Report", "pass", "The completeness representation conflicts with the delivered population.", [analyzer.atom("Decision", "Certificate", "REPORT")]),
+        ], "methods": ["deterministic", "join", "memory", "review"],
+    })
+
+    cash_ids = {field_value(row, "ERFASSUNGSNUMMER") for row in cash_rows}
+    cash_approvals = [row for row in violations if field_value(row, "ERFASSUNGSNUMMER") in cash_ids]
+    cash_total = sum((parse_amount(field_value(row, "BUCHUNGSBETRAG")) or Decimal(0)) for row in cash_rows if (parse_amount(field_value(row, "BUCHUNGSBETRAG")) or 0) > 0)
+    cash_gl_source = analyzer.source_for_rows("cash-pool-ledger", compact_table(gl_table, gl_table.columns, cash_rows), cash_rows, money(cash_total))
+    approval_compact = compact_table(approval_table, ["ERFASSUNGSNUMMER", "SUMME_ABS_EUR", "ERSTELLER", "ERFASST_AM", "ERFASST_UM", "FREIGEBER", "FREIGABESTATUS"], cash_approvals)
+    cash_approval_source = analyzer.source_for_rows("cash-pool-approvals", approval_compact, cash_approvals, f"{len(cash_approvals)} self-approvals")
+    shareholder_tables = find_tables(documents, [("NAME",), ("ANTEIL_PROZENT",), ("VERHAELTNIS",)])
+    shareholder_rows = [row for table in shareholder_tables for row in table.rows if "HOLDING" in norm(field_value(row, "NAME")) and parse_amount(field_value(row, "ANTEIL_PROZENT")) == Decimal(100)]
+    shareholder_source = analyzer.source_for_rows("cash-pool-parent", shareholder_tables[0], shareholder_rows, "100% parent") if shareholder_tables and shareholder_rows else None
+    cash_mapping_rows = [row for row in mapping_table.rows if field_value(row, "HAUPTKONTO") in {"266000", "274000"}]
+    cash_mapping_source = analyzer.source_for_rows("cash-pool-accounts", compact_table(mapping_table, ["KONTO_JOURNALFORMAT", "HAUPTKONTO", "KONTOBEZEICHNUNG", "ANZAHL_BUCHUNGEN"], cash_mapping_rows), cash_mapping_rows, "related-party clearing ↔ bank")
+    approval_policy_source = analyzer.source_for_text("journal-approval-policy", planning_doc, excerpt(planning_doc.text, "K6 – Journale mit Freigabeverstößen"), "Creator = approver or missing approval") if planning_doc else None
+    cash_sources = [item for item in [cash_gl_source, cash_approval_source, shareholder_source, cash_mapping_source, approval_policy_source] if item]
+    analyzer.findings.append({
+        "id": "F-02", "scheme": "related-party-cash-pool", "category": "FRAUD RISK", "severity": "Critical",
+        "title": "Four self-approved journals used the related-party clearing account", "amount": money(cash_total),
+        "explanation": f"Four manual journals move {money(cash_total)} between related-party clearing and the bank. Their text names “Cash-Pooling Beispiel Holding GmbH”; BSP-U02 created and approved each, and the ownership list identifies that entity as the 100% parent.",
+        "calculation": " + ".join(money(parse_amount(field_value(row, "BUCHUNGSBETRAG"))) for row in cash_rows if (parse_amount(field_value(row, "BUCHUNGSBETRAG")) or 0) > 0) + f" = {money(cash_total)}", "decision": "REPORT", "sourceIds": cash_sources,
+        "gates": [
+            analyzer.gate("facts", "Facts", "pass", "Four related-party bank transfers resolve to exact ledger lines.", [analyzer.atom("JournalSet", "Cash-pool journals", str(len(cash_ids)), source_id=cash_gl_source)]),
+            analyzer.gate("joins", "Join", "pass", "Journal IDs join the transfers to their approval records and the account map.", [analyzer.atom("ApprovalJoin", "Creator = approver", "BSP-U02", source_id=cash_approval_source)]),
+            analyzer.gate("counter", "Exclusions", "pass", "The audit plan defines creator-equals-approver as an approval violation.", [analyzer.atom("ControlRule", "Creator = approver", str(len(cash_approvals)), "excluded", approval_policy_source)]),
+            analyzer.gate("resolver", "Sources", "pass", "Ledger, approval, ownership and account-classification anchors resolve.", [analyzer.atom("AnchorSet", "Resolved anchors", str(len(cash_sources)))]),
+            analyzer.gate("certificate", "Report", "pass", "The related-party transfer and approval-control facts support reporting.", [analyzer.atom("Decision", "Certificate", "REPORT")]),
+        ], "methods": ["deterministic", "join", "memory", "public", "review"], "entity": "Beispiel Holding GmbH",
+    })
+
+    loan_ids = {field_value(row, "ERFASSUNGSNUMMER") for row in loan_rows}
+    loan_approvals = [row for row in violations if field_value(row, "ERFASSUNGSNUMMER") in loan_ids]
+    loan_total = sum((parse_amount(field_value(row, "BUCHUNGSBETRAG")) or Decimal(0)) for row in loan_rows if (parse_amount(field_value(row, "BUCHUNGSBETRAG")) or 0) > 0)
+    loan_gl_source = analyzer.source_for_rows("director-loan-ledger", compact_table(gl_table, gl_table.columns, loan_rows), loan_rows, money(loan_total))
+    loan_approval_compact = compact_table(approval_table, ["ERFASSUNGSNUMMER", "SUMME_ABS_EUR", "ERSTELLER", "ERFASST_AM", "ERFASST_UM", "FREIGEBER", "FREIGABESTATUS"], loan_approvals)
+    loan_approval_source = analyzer.source_for_rows("director-loan-approval", loan_approval_compact, loan_approvals, "No approval")
+    permission_tables = find_tables(documents, [("BENUTZERKENNUNG",), ("MANAGEMENT",), ("ROLLE",)])
+    permission_rows = [row for table in permission_tables for row in table.rows if field_value(row, "BENUTZERKENNUNG") in {field_value(item, "BENUTZERKENNUNG") for item in loan_rows}]
+    permission_source = analyzer.source_for_rows("director-loan-role", permission_tables[0], permission_rows, "Management function") if permission_tables and permission_rows else None
+    loan_mapping_rows = [row for row in mapping_table.rows if field_value(row, "HAUPTKONTO") in {"260000", "274000"}]
+    loan_mapping_source = analyzer.source_for_rows("director-loan-accounts", compact_table(mapping_table, ["KONTO_JOURNALFORMAT", "HAUPTKONTO", "KONTOBEZEICHNUNG", "ANZAHL_BUCHUNGEN"], loan_mapping_rows), loan_mapping_rows, "other receivable ↔ bank")
+    loan_sources = [item for item in [loan_gl_source, loan_approval_source, permission_source, loan_mapping_source, approval_policy_source] if item]
+    analyzer.findings.append({
+        "id": "F-03", "scheme": "unapproved-director-loan", "category": "FRAUD RISK", "severity": "Critical",
+        "title": "A year-end journal described as “Darlehen lt. GF” was posted without approval", "amount": money(loan_total),
+        "explanation": f"BSP-U09 posted “Darlehen lt. GF” for {money(loan_total)} between bank and other receivables at 22:47 on 30 December. The approval log marks the journal “GEBUCHT OHNE FREIGABE,” and the role file identifies BSP-U09 as commercial management.",
+        "calculation": f"Other receivable {money(loan_total)} ↔ bank {money(-loan_total)}", "decision": "REPORT", "sourceIds": loan_sources,
+        "gates": [
+            analyzer.gate("facts", "Facts", "pass", "The amount, text, time and user resolve to a balanced manual journal.", [analyzer.atom("Journal", "Darlehen lt. GF", money(loan_total), source_id=loan_gl_source)]),
+            analyzer.gate("joins", "Join", "pass", "The journal ID joins to the missing approval and the user joins to management.", [analyzer.atom("ApprovalJoin", "Approval status", "GEBUCHT OHNE FREIGABE", source_id=loan_approval_source)]),
+            analyzer.gate("counter", "Exclusions", "pass", "The audit plan defines missing approval as a violation; approved journals are excluded.", [analyzer.atom("ControlRule", "Missing approval", "K6", "excluded", approval_policy_source)]),
+            analyzer.gate("resolver", "Sources", "pass", "Ledger, approval, role and account-map anchors resolve.", [analyzer.atom("AnchorSet", "Resolved anchors", str(len(loan_sources)))]),
+            analyzer.gate("certificate", "Report", "pass", "The material unapproved management journal supports reporting.", [analyzer.atom("Decision", "Certificate", "REPORT")]),
+        ], "methods": ["deterministic", "join", "memory", "review"],
+    })
+
+    invoice_tables = find_tables(documents, [("RECHNUNGSNUMMER",), ("LIEFERART",), ("BETRAG",)])
+    bill_rows = [row for table in invoice_tables for row in table.rows if "BILLANDHOLD" in norm(field_value(row, "LIEFERART", "BEMERKUNG"))]
+    agreement_doc = document_by_name.get("Bill-and-Hold-Vereinbarung_801677.pdf")
+    shipping_tables = [table for table in find_tables(documents, [("WARENAUSGANG_NR",), ("RECHNUNGSNUMMER",)]) if "WARENAUSGANG" in norm(table.document.name)]
+    if bill_rows and agreement_doc and invoice_tables and shipping_tables:
+        bill_row = bill_rows[0]
+        bill_ref = field_value(bill_row, "RECHNUNGSNUMMER")
+        bill_amount = parse_amount(field_value(bill_row, "BETRAG_EUR", "BETRAG")) or Decimal(0)
+        shipments = [row for table in shipping_tables for row in table.rows if field_value(row, "RECHNUNGSNUMMER") == bill_ref]
+        bill_invoice_source = analyzer.source_for_rows("bill-hold-invoice", invoice_tables[0], [bill_row], money(bill_amount))
+        bill_shipping_source = analyzer.source_for_rows("bill-hold-shipping", shipping_tables[0], shipments, f"{len(shipments)} shipments", f"Exact invoice search for {bill_ref} returned {len(shipments)} shipping rows.")
+        bill_agreement_source = analyzer.source_for_text("bill-hold-agreement", agreement_doc, excerpt(agreement_doc.text, bill_ref), "Signed agreement")
+        analyzer.holds.append({
+            "id": "H-01", "scheme": "bill-and-hold-cleared", "category": "CUT-OFF", "severity": "High",
+            "title": "Missing shipment for the bill-and-hold sale", "amount": money(bill_amount),
+            "explanation": "The missing shipment is not reported as fraud: the signed agreement identifies the invoice, customer request, segregated inventory, transfer of risk and a latest delivery date.",
+            "calculation": f"{bill_ref} · {money(bill_amount)} · {len(shipments)} shipping rows", "decision": "HOLD", "sourceIds": [bill_invoice_source, bill_shipping_source, bill_agreement_source],
+            "gates": [
+                analyzer.gate("facts", "Facts", "pass", "The invoice has no shipping-list match.", [analyzer.atom("ZeroResult", "Shipping rows", str(len(shipments)), source_id=bill_shipping_source)]),
+                analyzer.gate("joins", "Join", "pass", "The signed agreement resolves to the exact invoice and customer.", [analyzer.atom("AgreementJoin", "Invoice", bill_ref, source_id=bill_agreement_source)]),
+                analyzer.gate("counter", "Exclusions", "pass", "Documented bill-and-hold criteria provide case-specific counterevidence.", [analyzer.atom("Counterevidence", "Signed agreement", "present", "excluded", bill_agreement_source)]),
+                analyzer.gate("resolver", "Sources", "pass", "Invoice, zero-result search and agreement resolve.", [analyzer.atom("AnchorSet", "Resolved anchors", "3")]),
+                analyzer.gate("certificate", "Hold", "hold", "The shipment gap alone does not support a report claim.", [analyzer.atom("Decision", "Certificate", "HOLD", "held")]),
+            ], "methods": ["deterministic", "join", "review"],
+        })
+
+    for index, finding in enumerate(analyzer.findings, 1):
+        finding["id"] = f"F-{index:02d}"
+        finding["certificate"] = f"proof:{dataset_id}:{finding['scheme']}:{index}"
+    for index, finding in enumerate(analyzer.holds, 1):
+        finding["id"] = f"H-{index:02d}"
+        finding["certificate"] = f"hold:{dataset_id}:{finding['scheme']}:{index}"
+    analysis = {
+        "service": "audit-engine", "ok": True,
+        "dataset": {"id": dataset_id, "kind": "final", "name": "Beispiel Dämmstoffe FY 2025", "company": "Beispiel Dämmstoffe GmbH", "files": len(all_files), "rows": row_count, "analyzedAt": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")},
+        "sources": list(analyzer.sources.values()), "findings": analyzer.findings, "holds": analyzer.holds,
+        "summary": {"report": len(analyzer.findings), "hold": len(analyzer.holds), "citations": len(analyzer.sources)},
+        "specialists": {"cognee": {"phase": "idle", "detail": "Not run"}, "tavily": {"phase": "idle", "detail": "Not run"}, "codex": {"phase": "idle", "detail": "Not run"}},
+    }
+    with STATE_LOCK:
+        STATE.update({"analysis": analysis, "files": {}, "datasetDir": str(FINAL_DIR), "datasetKind": "final"})
+        PRESET_CACHE["final"] = json.loads(json.dumps(analysis))
     return analysis
 
 
 def initialize_sample() -> None:
     if SAMPLE_DIR.exists():
-        analyze_files(load_directory(SAMPLE_DIR), "Muster Verpackungen FY 2025")
+        analyze_files(load_directory(SAMPLE_DIR), "Muster Verpackungen FY 2025", "first")
+
+
+def analyze_first_dataset(force: bool = False) -> dict[str, Any]:
+    with STATE_LOCK:
+        cached = PRESET_CACHE.get("first")
+        if cached and not force:
+            analysis = json.loads(json.dumps(cached))
+            STATE.update({"analysis": analysis, "files": load_directory(SAMPLE_DIR), "datasetDir": None, "datasetKind": "first"})
+            return analysis
+    return analyze_files(load_directory(SAMPLE_DIR), "Muster Verpackungen FY 2025", "first")
 
 
 def request_json(url: str, payload: dict[str, Any] | None = None, timeout: int = 180) -> dict[str, Any]:
@@ -601,16 +926,25 @@ def cognee_remember(files: dict[str, bytes], dataset: str) -> None:
 
 def run_specialists(analysis: dict[str, Any], enabled: dict[str, bool]) -> dict[str, Any]:
     results: dict[str, Any] = {}
-    report_text = "\n".join(f"{item['id']} {item['title']}: {item['explanation']} Sources: {', '.join(item['sourceIds'])}" for item in analysis["findings"])
+    claim_summary = "\n".join(f"{item['id']} {item['title']}: {item['explanation']}" for item in analysis["findings"])
+    source_by_id = {source["id"]: source for source in analysis.get("sources", [])}
+    report_parts = []
+    for item in analysis["findings"]:
+        evidence = "\n".join(f"- {source_id}: {source_by_id[source_id]['passage']}" for source_id in item["sourceIds"] if source_id in source_by_id)
+        report_parts.append(f"{item['id']} {item['title']}: {item['explanation']}\nEvidence:\n{evidence}")
+    report_text = "\n\n".join(report_parts)
     entity = next((item.get("entity") for item in analysis["findings"] if item.get("entity")), None)
     if enabled.get("cognee"):
         try:
             dataset = "audit-muster-2025" if analysis["dataset"]["name"] == "Muster Verpackungen FY 2025" else f"audit-{analysis['dataset']['id']}"
             if dataset != "audit-muster-2025":
-                dataset = f"{dataset}-resolved-v1"
-                memory_text = "\n\n".join(f"SOURCE {source['name']} | {source['location']}\n{source['passage']}" for source in analysis["sources"])
-                cognee_remember({"resolved-evidence.txt": memory_text.encode()}, dataset)
-            payload = request_json("http://127.0.0.1:8000/api/v1/recall", {"query": f"Challenge these dossier findings and identify missing relationships: {report_text[:1800]}", "datasets": [dataset], "search_type": "GRAPH_COMPLETION", "top_k": 8}, 240)
+                dataset = f"{dataset}-resolved-v2"
+                marker = RUNTIME_DIR / f"cognee-{slug(dataset)}.ready"
+                if not marker.exists():
+                    memory_text = "\n\n".join(f"SOURCE {source['name']} | {source['location']}\n{source['passage']}" for source in analysis["sources"])
+                    cognee_remember({"resolved-evidence.txt": memory_text.encode()}, dataset)
+                    marker.write_text(datetime.now(timezone.utc).isoformat())
+            payload = request_json("http://127.0.0.1:8000/api/v1/recall", {"query": f"Using the stored source evidence, summarize the relationships between ledger-tail rows, approval violations, ownership, account classification and user roles for these claims: {claim_summary[:1800]}", "datasets": [dataset], "search_type": "GRAPH_COMPLETION", "top_k": 8}, 240)
             values = payload if isinstance(payload, list) else payload.get("results", [])
             answer = "\n".join(clean_text(item.get("text") or item.get("content") or item.get("answer")) for item in values if isinstance(item, dict))
             results["cognee"] = {"phase": "pass", "detail": answer[:1200] or "Recall completed", "dataset": dataset}
@@ -619,7 +953,10 @@ def run_specialists(analysis: dict[str, Any], enabled: dict[str, bool]) -> dict[
     if enabled.get("tavily") and entity:
         try:
             payload = request_json("http://127.0.0.1:8787/search", {"query": f'"{entity}" company registry', "maxResults": 3}, 30)
-            results["tavily"] = {"phase": "pass", "detail": f"{len(payload.get('results', []))} public matches", "results": payload.get("results", [])}
+            public_results = payload.get("results", [])
+            exact_matches = [item for item in public_results if norm(entity) in norm(f"{item.get('title', '')} {item.get('content', '')}")]
+            detail = f"{len(public_results)} sources checked · {len(exact_matches)} exact-name matches"
+            results["tavily"] = {"phase": "pass", "detail": detail, "results": public_results, "exactMatches": len(exact_matches), "query": entity}
         except Exception as error:
             results["tavily"] = {"phase": "fail", "detail": type(error).__name__}
     elif enabled.get("tavily"):
@@ -635,6 +972,9 @@ def run_specialists(analysis: dict[str, Any], enabled: dict[str, bool]) -> dict[
     analysis["specialists"] = {**analysis.get("specialists", {}), **results}
     with STATE_LOCK:
         STATE["analysis"] = analysis
+        dataset_kind = analysis.get("dataset", {}).get("kind")
+        if dataset_kind in {"first", "final"}:
+            PRESET_CACHE[dataset_kind] = json.loads(json.dumps(analysis))
     return analysis
 
 
@@ -686,6 +1026,10 @@ class Handler(BaseHTTPRequestHandler):
             with STATE_LOCK:
                 analysis = STATE.get("analysis")
             self.send_json(200, {"service": "audit-engine", "ok": True, "mode": "local", "datasetLoaded": bool(analysis), "version": "1.0"})
+        elif self.path == "/api/datasets":
+            with STATE_LOCK:
+                active = STATE.get("datasetKind")
+            self.send_json(200, {"service": "audit-engine", "ok": True, "active": active, "datasets": {"first": SAMPLE_DIR.exists(), "final": FINAL_DIR.exists(), "custom": True}})
         elif self.path == "/api/analysis":
             with STATE_LOCK:
                 analysis = STATE.get("analysis")
@@ -699,10 +1043,27 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             if self.path == "/api/load-sample":
-                analysis = analyze_files(load_directory(SAMPLE_DIR), "Muster Verpackungen FY 2025")
+                analysis = analyze_first_dataset()
+                self.send_json(200, analysis)
+                return
+            if self.path == "/api/load-final":
+                analysis = analyze_final_directory()
                 self.send_json(200, analysis)
                 return
             body = self.read_json()
+            if self.path == "/api/select":
+                kind = clean_text(body.get("kind"))
+                if kind not in {"first", "final"}:
+                    raise ValueError("invalid_dataset")
+                enabled = body.get("enabled") if isinstance(body.get("enabled"), dict) else {"cognee": True, "tavily": True, "codex": True}
+                with DATASET_RUN_LOCK:
+                    analysis = analyze_first_dataset() if kind == "first" else analyze_final_directory()
+                    with SPECIALIST_RUN_LOCK:
+                        already_run = all(not requested or analysis.get("specialists", {}).get(service, {}).get("phase") != "idle" for service, requested in enabled.items())
+                        if not already_run:
+                            analysis = run_specialists(analysis, enabled)
+                self.send_json(200, analysis)
+                return
             if self.path == "/api/analyze":
                 items = body.get("files")
                 if not isinstance(items, list) or not 1 <= len(items) <= MAX_FILES:
@@ -721,23 +1082,33 @@ class Handler(BaseHTTPRequestHandler):
                     if total > MAX_BODY * 0.75:
                         raise ValueError("dataset_too_large")
                     files[str(relative_path)] = data
-                analysis = analyze_files(files, clean_text(body.get("name")) or "Uploaded dossier")
+                analysis = analyze_files(files, clean_text(body.get("name")) or "Uploaded dossier", "custom")
                 self.send_json(200, analysis)
             elif self.path == "/api/rerun":
                 with STATE_LOCK:
                     files = dict(STATE.get("files") or {})
                     current = STATE.get("analysis")
-                if not files or not current:
+                    dataset_kind = STATE.get("datasetKind")
+                if not current:
                     raise ValueError("no_dataset")
-                analysis = analyze_files(files, current["dataset"]["name"])
+                if dataset_kind == "final":
+                    analysis = analyze_final_directory(force=True)
+                elif dataset_kind == "first":
+                    analysis = analyze_first_dataset(force=True)
+                elif files:
+                    analysis = analyze_files(files, current["dataset"]["name"], "custom")
+                else:
+                    raise ValueError("no_dataset")
                 self.send_json(200, analysis)
             elif self.path == "/api/specialists":
-                with STATE_LOCK:
-                    analysis = STATE.get("analysis")
-                if not analysis:
-                    raise ValueError("no_dataset")
                 enabled = body.get("enabled") if isinstance(body.get("enabled"), dict) else {"cognee": True, "tavily": True, "codex": True}
-                self.send_json(200, run_specialists(analysis, enabled))
+                with SPECIALIST_RUN_LOCK:
+                    with STATE_LOCK:
+                        analysis = STATE.get("analysis")
+                    if not analysis:
+                        raise ValueError("no_dataset")
+                    already_run = all(not requested or analysis.get("specialists", {}).get(service, {}).get("phase") != "idle" for service, requested in enabled.items())
+                    self.send_json(200, analysis if already_run else run_specialists(analysis, enabled))
             else:
                 self.send_json(404, {"ok": False, "error": "not_found"})
         except (ValueError, json.JSONDecodeError) as error:

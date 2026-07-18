@@ -10,9 +10,11 @@ class AuditEngineTest(unittest.TestCase):
         analysis = server.analyze_files(
             server.load_directory(server.SAMPLE_DIR),
             "Muster Verpackungen FY 2025",
+            "first",
         )
 
         self.assertEqual(analysis["dataset"]["files"], 35)
+        self.assertEqual(analysis["dataset"]["kind"], "first")
         self.assertEqual(analysis["summary"]["report"], 4)
         self.assertEqual(analysis["summary"]["hold"], 1)
         self.assertGreaterEqual(analysis["summary"]["citations"], 10)
@@ -59,6 +61,22 @@ class AuditEngineTest(unittest.TestCase):
         self.assertEqual(findings["split-payments"]["amount"], "€14.700,00")
         self.assertIn("€5.000,00", findings["split-payments"]["explanation"])
         self.assertNotIn("MV-U", str(analysis))
+
+    @unittest.skipUnless(server.FINAL_DIR.exists(), "final dossier is local-only")
+    def test_final_dossier_reconciles_the_delivered_population(self) -> None:
+        analysis = server.analyze_final_directory(force=True)
+        findings = {finding["scheme"]: finding for finding in analysis["findings"]}
+
+        self.assertEqual(analysis["dataset"]["kind"], "final")
+        self.assertEqual(analysis["dataset"]["files"], 44)
+        self.assertEqual(analysis["summary"], {"report": 3, "hold": 1, "citations": 15})
+        self.assertEqual(findings["export-integrity"]["amount"], "€5.197.000,00")
+        self.assertIn("1,083,723 − 1,083,713 = 10", findings["export-integrity"]["calculation"])
+        self.assertEqual(findings["related-party-cash-pool"]["amount"], "€2.197.000,00")
+        self.assertEqual(findings["unapproved-director-loan"]["amount"], "€3.000.000,00")
+        self.assertIn("GEBUCHT OHNE FREIGABE", findings["unapproved-director-loan"]["explanation"])
+        self.assertEqual(analysis["holds"][0]["scheme"], "bill-and-hold-cleared")
+        self.assertIn("0 shipping rows", analysis["holds"][0]["calculation"])
 
 
 if __name__ == "__main__":

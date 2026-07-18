@@ -8,6 +8,10 @@
     "check": "tsc --noEmit",
     "render": "remotion render src/index.ts",
     "render:reels": "npm run render -- Cited-Memo-Reel out/cited-memo-reel.mp4 && npm run render -- Audit-Test-Lab-Reel out/audit-test-lab-reel.mp4 && npm run render -- Benchmark-Studio-Reel out/benchmark-studio-reel.mp4",
+    "render:alternatives": "npm run render -- Cited-Memo-Alternatives-Reel out/cited-memo-alternatives.mp4 && npm run render -- Audit-Test-Lab-Alternatives-Reel out/audit-test-lab-alternatives.mp4 && npm run render -- Benchmark-Studio-Alternatives-Reel out/benchmark-studio-alternatives.mp4",
+    "render:latest": "npm run render -- Evidence-Graph-Reel out/evidence-graph.mp4 && npm run render -- Detector-Skeptic-Reel out/detector-skeptic.mp4 && npm run render -- Public-Checks-Reel out/public-checks.mp4 && npm run render -- Evidence-Memory-Reel out/evidence-memory.mp4 && npm run render -- Local-Reviewer-Reel out/local-reviewer.mp4 && npm run render -- Adaptive-Router-Reel out/adaptive-router.mp4",
+    "render:creative": "npm run render -- Creative-Evidence-Anthology out/creative-evidence.mp4 && npm run render -- Creative-Challenge-Anthology out/creative-challenge.mp4 && npm run render -- Creative-Intelligence-Anthology out/creative-intelligence.mp4",
+    "render:silent": "npm run render -- Silent-Evidence-Anthology out/silent-evidence.mp4 && npm run render -- Silent-Challenge-Anthology out/silent-challenge.mp4 && npm run render -- Silent-Control-Anthology out/silent-control.mp4",
     "render:stills": "remotion still src/index.ts Cited-Memo-Inline-Citations out/cited-memo.png --frame=120 && remotion still src/index.ts Audit-Test-Lab-Pipeline out/audit-test-lab.png --frame=120 && remotion still src/index.ts Benchmark-Studio-Four-Detectors out/benchmark-studio.png --frame=120"
   },
   "dependencies": {
