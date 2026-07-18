@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type ServiceId = 'cognee' | 'tavily' | 'codex'
 export type CheckPhase = 'idle' | 'pending' | 'ok' | 'error'
@@ -126,8 +126,8 @@ export function useSetupHealth() {
     setAdapterChecks((current) => ({ ...current, [service]: { phase: 'idle', message: 'Not tested' } }))
   }, [])
 
-  const testEndpoint = useCallback(async (service: ServiceId) => {
-    const endpoint = endpoints[service].trim()
+  const testEndpoint = useCallback(async (service: ServiceId, endpointOverride?: string) => {
+    const endpoint = (endpointOverride ?? endpoints[service]).trim()
     const validationError = validateEndpoint(endpoint)
       || (service === 'cognee' && !['127.0.0.1', 'localhost', '[::1]'].includes(new URL(endpoint).hostname) ? 'Cognee must run on loopback.' : '')
     if (validationError) {
@@ -162,12 +162,23 @@ export function useSetupHealth() {
     ])
   }, [refreshRuntime, testEndpoint])
 
+  const autoTestStarted = useRef(false)
+  useEffect(() => {
+    if (autoTestStarted.current) return
+    autoTestStarted.current = true
+    void testAll()
+  }, [testAll])
+
   const resetSetup = useCallback(() => {
     window.localStorage.removeItem(endpointStorageKey)
     setEndpoints(defaultEndpointUrls)
-    setAdapterChecks(idleChecks)
-    void refreshRuntime()
-  }, [refreshRuntime])
+    void Promise.all([
+      refreshRuntime(),
+      testEndpoint('cognee', defaultEndpointUrls.cognee),
+      testEndpoint('tavily', defaultEndpointUrls.tavily),
+      testEndpoint('codex', defaultEndpointUrls.codex),
+    ])
+  }, [refreshRuntime, testEndpoint])
 
   return {
     endpoints,

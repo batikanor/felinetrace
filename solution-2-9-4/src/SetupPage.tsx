@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   BrainCircuit,
   CheckCircle2,
@@ -221,12 +221,12 @@ export function SetupPage() {
     void testLocalRuntime()
   }, [testLocalRuntime])
 
-  const testIntegration = async (spec: IntegrationSpec) => {
+  const testIntegration = useCallback(async (spec: IntegrationSpec, endpoint = endpoints[spec.id]) => {
     setIntegrationChecks((checks) => ({ ...checks, [spec.id]: { phase: 'checking', detail: 'Fetching and validating JSON' } }))
     const controller = new AbortController()
     const timeoutId = window.setTimeout(() => controller.abort(), 3600)
     try {
-      const url = normalizeHealthUrl(endpoints[spec.id], spec.id === 'cognee')
+      const url = normalizeHealthUrl(endpoint, spec.id === 'cognee')
       const response = await fetch(url, {
         method: 'GET',
         headers: { Accept: 'application/json' },
@@ -253,7 +253,14 @@ export function SetupPage() {
     } finally {
       window.clearTimeout(timeoutId)
     }
-  }
+  }, [endpoints])
+
+  const autoTestStarted = useRef(false)
+  useEffect(() => {
+    if (autoTestStarted.current) return
+    autoTestStarted.current = true
+    void Promise.all(integrations.map((integration) => testIntegration(integration)))
+  }, [testIntegration])
 
   const testAll = async () => {
     await Promise.all([testLocalRuntime(), ...integrations.map((integration) => testIntegration(integration))])
@@ -262,7 +269,7 @@ export function SetupPage() {
   const reset = () => {
     window.localStorage.removeItem(STORAGE_KEY)
     setEndpoints(defaultEndpoints)
-    setIntegrationChecks(pendingChecks)
+    void Promise.all(integrations.map((integration) => testIntegration(integration, defaultEndpoints[integration.id])))
   }
 
   const localPhase: Phase = localCheck.phase === 'checking' ? 'checking' : localStatus ? 'pass' : localCheck.phase
