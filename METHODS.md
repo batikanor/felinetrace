@@ -43,6 +43,14 @@ A locally authenticated Codex sidecar challenges amounts, searches for counterev
 
 Deterministic tests and robust peer baselines run first. Memory, public checks, and a local reviewer are invoked only when a candidate needs them. Single-signal anomalies are held rather than reported.
 
+## Solution 2-10: claim compiler
+
+Every proposed report sentence is compiled from typed facts, calculations, joins, exclusions, and exact source anchors. A claim reaches the report only when its proof contract passes; an unresolved or contradictory claim remains held.
+
+## Solution 2-11: active investigation planner
+
+Each unresolved hypothesis has evidence coverage, cost, privacy, and expected information value. The planner recommends the next test most likely to change the decision, then stops when the sourced evidence is sufficient or the lead should be held.
+
 ## Benchmark dimensions
 
 - Scheme-level recall

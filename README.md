@@ -15,6 +15,8 @@ Evidence-first audit prototypes for the Cortea challenge. Every reported claim l
 | `solution-2-7` | Evidence memory | Cognee graph/vector recall with provenance repair | `42977` |
 | `solution-2-8` | Local reviewer | Human-gated Codex sidecar | `42988` |
 | `solution-2-9` | Adaptive router | Cost-aware staged escalation | `42999` |
+| `solution-2-10` | Claim Compiler | Executable evidence proofs | `43010` |
+| `solution-2-11` | Investigation Planner | Next-best-test orchestration | `43021` |
 
 Earlier explorations remain available in `solution-1 (deprecated)`,
 `solution-3 (deprecated)`, and `solution-4 (deprecated)`.
@@ -38,4 +40,4 @@ Challenge data and ground truth are intentionally excluded from Git. Place local
 
 The current prototypes embed the sample findings and evidence metadata in `src/caseData.ts`. Dynamic ingestion and execution against a new dossier are the next implementation layer.
 
-See [METHODS.md](./METHODS.md) for the original detection approaches and [RESEARCH.md](./RESEARCH.md) for the Cognee, Tavily, public-source, and Codex integration guidance.
+See [METHODS.md](./METHODS.md) for the detection approaches, [RANKING.md](./RANKING.md) for the winning-chance assessment, [SETUP.md](./SETUP.md) for onboarding, and [RESEARCH.md](./RESEARCH.md) for the Cognee, Tavily, public-source, and Codex guidance.
