@@ -1,63 +1,166 @@
 # FelineTrace
 
-Evidence-first audit prototypes for the Cortea challenge. Every reported claim links to a specific file and row, cell, section, or page, while the final audit memo remains editable in PlateJS.
+**Follow the money. Find the fraud. Prove it.**
 
-## Current prototypes
+FelineTrace is an evidence-first audit workspace for the Cortea challenge. It analyzes a company dossier, tests cross-document accounting relationships, and compiles only supported claims into an editable PlateJS report. Every amount and conclusion links back to an exact source row, cell, section, or page.
 
-| Folder | Method | Interface | Port |
+The repository now contains one product implementation: [`solution`](./solution).
+
+## What the auditor gets
+
+- A focused, Google Docs-style PlateJS report that remains editable.
+- Inline numbered citations with exact source previews.
+- Deterministic findings separated from held or cleared hypotheses.
+- A compact proof view for facts, joins, counterevidence, provenance, and the final decision.
+- Source cards and draggable source windows for side-by-side review.
+- A manual source-linked case flow.
+- A main-page dataset switch for **First dataset**, **Final dataset**, and **Custom** uploads.
+- A Setup page that automatically tests every local service on load.
+
+## How analysis works
+
+```text
+source files
+    ↓
+format-aware parsing and streaming
+    ↓
+deterministic reconciliations, joins, control tests, and counterevidence
+    ↓
+exact source-anchor resolution
+    ↓
+optional real specialists: local Cognee → Tavily → local Codex
+    ↓
+REPORT or HOLD proof → editable PlateJS report
+```
+
+The deterministic engine is authoritative. Specialists can discover relationships, corroborate public identity, or challenge wording, but they cannot create a citation, change a calculation, or bypass a proof gate.
+
+### Supported evidence
+
+CSV, TXT/GDPdU, XLSX, DOCX, PDF, XML, DTD, JSON, and Markdown are supported. The final dossier includes a 292 MB general-ledger export; the engine streams its relevant rows instead of loading the file into memory.
+
+### Dataset modes
+
+| Mode | Source | Behavior |
+| --- | --- | --- |
+| First dataset | `source-docs/data/` | Loads and analyzes the original sample dossier. |
+| Final dataset | `source-docs/final-data/Daten BSP/` | Streams and reconciles the released final dossier. |
+| Custom | Browser folder or file upload | Parses a new dossier and reruns the same generalized pipeline. |
+
+The preset folders and uploaded data are local only. `source-docs/data-ground-truth/` is never read by the application or tests.
+
+## Final-dataset verification
+
+The current deterministic run reads 44 files and 1,957,468 source rows. It compiles three reportable control or completeness findings and holds one supported alternative:
+
+1. A 10-line ledger completeness discrepancy, equal to €5,197,000 per side.
+2. Four self-approved journals totaling €2,197,000 through a related-party clearing account.
+3. A €3,000,000 year-end journal described as `Darlehen lt. GF`, posted without approval.
+4. A bill-and-hold sale is held rather than reported because the signed agreement provides the required counterevidence.
+
+These results are produced from the dossier at runtime; they are not frontend fixtures.
+
+## Real specialist integrations
+
+| Service | Purpose | Trust boundary | Local endpoint |
 | --- | --- | --- | --- |
-| `solution-2` | Cited baseline | Inline citations and Sources page | `42832` |
-| `solution-2-2` | Deterministic test library | Audit Test Lab and coverage matrix | `42922` |
-| `solution-2-3` | Evidence graph | Entity and transaction paths | `42933` |
-| `solution-2-4` | Detector + skeptic | Evidence-for / counterevidence review | `42944` |
-| `solution-2-5` | Four-method ensemble | Consensus and benchmark studio | `42955` |
-| `solution-2-6` | Public corroboration | Tavily-ready official-source checks | `42966` |
-| `solution-2-7` | Evidence memory | Cognee graph/vector recall with provenance repair | `42977` |
-| `solution-2-8` | Local reviewer | Human-gated Codex sidecar | `42988` |
-| `solution-2-9` | Adaptive router | Cost-aware staged escalation | `42999` |
-| `solution-2-9-2` | Adaptive router | Finding drawer | `43192` |
-| `solution-2-9-3` | Adaptive router | Route form | `43193` |
-| `solution-2-9-4` | Adaptive router | Stage accordion | `43194` |
-| `solution-2-9-5` | Adaptive router | Focus navigator | `43195` |
-| `solution-2-10` | Claim Compiler | Executable evidence proofs | `43010` |
-| `solution-2-10-2` | Claim Compiler | Claim form | `43202` |
-| `solution-2-10-3` | Claim Compiler | Claim accordion | `43203` |
-| `solution-2-10-4` | Claim Compiler | Proof checklist | `43204` |
-| `solution-2-10-5` | Claim Compiler | Review wizard | `43205` |
-| `solution-2-11` | Investigation Planner | Next-best-test orchestration | `43021` |
+| Cognee | Dossier-scoped relationship memory and graph recall | Self-hosted; compact resolved evidence only | `127.0.0.1:43110` adapter, `127.0.0.1:8000` API |
+| Tavily | Focused public corroboration for named entities | Key stays in the server-side proxy; search cannot prove an internal posting | `127.0.0.1:8787` |
+| Codex | Challenges wording, overstatement, counterevidence, and citation scope | Existing local ChatGPT login; ephemeral read-only execution | `127.0.0.1:4010` |
 
-Earlier explorations remain available in `solution-1 (deprecated)`,
-`solution-3 (deprecated)`, and `solution-4 (deprecated)`.
+Cognee uses local Ollama generation and embeddings with local SQLite, LanceDB, and Kuzu stores. No Cognee Cloud account or key is used.
 
-## Shared product foundation
+## Prerequisites
 
-- Editable PlateJS report
-- Atomic `[1] [2]` source citations
-- Compact Sources page
-- Exact source windows for CSV, TXT, XLSX, DOCX, and PDF evidence
-- Draggable evidence comparison
-- Comments and formatting controls
-- Manual case creation with document linking in the `2-x` experiments
+- Node.js 20 or newer
+- Python 3.11 or newer
+- Docker Desktop
+- [Ollama](https://ollama.com/) for local Cognee models
+- Codex CLI signed in with ChatGPT for the reviewer
+- A Tavily API key stored locally in `services/tavily-proxy/.env.local`
 
-## Local data
+Copy the Tavily example once and add the key without committing it:
 
-Challenge data and ground truth are intentionally excluded from Git. Place local files under:
+```bash
+cd /path/to/felinetrace/services/tavily-proxy
+cp .env.example .env.local
+```
 
-- `source-docs/data/`
-- `source-docs/data-ground-truth/`
+## Run locally
 
-The current prototypes embed the benchmark findings and evidence metadata in `src/caseData.ts`. `solution-2-7` additionally performs live, dossier-scoped Recall through the local Cognee adapter; the deterministic detector outputs remain replayed fixtures.
+Start these processes in separate terminals. All services bind to loopback.
 
-## Local Cognee
+### 1. Local Cognee
 
-Cognee is self-hosted through [`services/cognee-local`](./services/cognee-local). It uses local Ollama generation and embeddings plus SQLite, LanceDB, and Kuzu. No Cognee Cloud account or key is used.
+```bash
+cd /path/to/felinetrace/services/cognee-local
+./start.sh
+```
 
-## Local Codex reviewer
+The script verifies Docker and Ollama, pulls `llama3.1:8b` and `nomic-embed-text:latest` when needed, and starts the pinned local Cognee stack.
 
-The loopback sidecar in [`services/codex-reviewer`](./services/codex-reviewer) reuses the local Codex CLI ChatGPT sign-in. Health checks never invoke an agent; review requests run ephemerally in a read-only sandbox with structured output validation.
+### 2. Tavily proxy
 
-See [UX-VARIANTS.md](./UX-VARIANTS.md) for this interface comparison, [METHODS.md](./METHODS.md) for the detection approaches, [RANKING.md](./RANKING.md) for the winning-chance assessment, [SETUP.md](./SETUP.md) for onboarding, and [RESEARCH.md](./RESEARCH.md) for the Cognee, Tavily, public-source, and Codex guidance.
+```bash
+cd /path/to/felinetrace/services/tavily-proxy
+./start.sh
+```
 
-## Local Tavily proxy
+### 3. Codex reviewer
 
-`services/tavily-proxy/start.sh` loads the ignored local key, validates it through Tavily `/usage`, and exposes sanitized loopback-only health and search endpoints on port `8787`.
+```bash
+cd /path/to/felinetrace/services/codex-reviewer
+./start.sh
+```
+
+### 4. Audit engine
+
+```bash
+cd /path/to/felinetrace/services/audit-engine
+./start.sh
+```
+
+### 5. Web app
+
+```bash
+cd /path/to/felinetrace/solution
+npm install
+npm run dev -- --host 127.0.0.1 --port 43205
+```
+
+Open [http://127.0.0.1:43205/](http://127.0.0.1:43205/). Use the dataset control above the report to switch dossiers. The Setup page performs integration checks automatically and also provides manual retest controls.
+
+## Verification
+
+The engine suite proves the first preset, the released final preset, and an independently generated custom dossier with different IDs, amounts, vendor names, and approval thresholds.
+
+```bash
+cd /path/to/felinetrace
+./services/audit-engine/test.sh
+cd solution
+npm run lint -- --quiet
+npm run build
+```
+
+Individual specialist smoke tests are also available as `services/*/smoke-test.sh`.
+
+## Repository layout
+
+```text
+solution/                 React + PlateJS auditor workspace
+services/audit-engine/    Parsers, deterministic tests, proof compiler, API
+services/cognee-local/    Self-hosted Cognee + Ollama adapter
+services/tavily-proxy/    Secret-holding Tavily proxy
+services/codex-reviewer/  Read-only Codex review sidecar
+source-docs/challenge.md  Challenge brief
+```
+
+Additional method and deployment details are in [`METHODS.md`](./METHODS.md), [`RESEARCH.md`](./RESEARCH.md), [`SETUP.md`](./SETUP.md), and [`solution/CLAIM-COMPILER.md`](./solution/CLAIM-COMPILER.md).
+
+## Data and security
+
+- `source-docs/data/`, `source-docs/final-data/`, and `source-docs/data-ground-truth/` are gitignored.
+- `.env.local`, runtime stores, caches, virtual environments, and generated build output are gitignored.
+- The Tavily key never enters browser code or sanitized health responses.
+- The Codex sidecar disables workspace writes and validates structured output.
+- All local service CORS rules and listeners are restricted to the FelineTrace loopback app.

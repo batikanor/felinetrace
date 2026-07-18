@@ -21,13 +21,13 @@ cd /Users/batikanor2/Documents/development/personal-git/2026-july-almedia/servic
 ./start.sh
 ```
 
-## Load the dossier
+## Optional direct ingestion
 
-This uploads only `source-docs/data`; it never loads `source-docs/data-ground-truth`.
+The audit engine normally sends a compact resolved evidence set from the active first, final, or custom dossier. To ingest the first dossier directly for adapter development:
 
 ```bash
 cd /Users/batikanor2/Documents/development/personal-git/2026-july-almedia/services/cognee-local
 ./ingest-dossier.sh
 ```
 
-`solution-2-7` sends Recall queries to the loopback adapter, which scopes every request to `audit-muster-2025` and calls Cognee's local `/api/v1/recall` endpoint.
+Every FelineTrace run uses a dossier-scoped dataset and calls Cognee's local `/api/v1/remember` and `/api/v1/recall` endpoints. Ground truth is never ingested.

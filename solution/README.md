@@ -1,6 +1,6 @@
-# FelineTrace — final prototype
+# FelineTrace — solution
 
-Solution 2-10-5 is the data-driven final prototype. Its PlateJS report, findings, proof gates, citations, source previews, totals, and literature page are built from the active dossier.
+This is the data-driven FelineTrace application. Its PlateJS report, findings, proof gates, citations, source previews, totals, and literature page are built from the active dossier.
 
 ## Workflow
 
@@ -21,7 +21,7 @@ The Setup tab automatically checks the audit engine and all three local integrat
 ```bash
 cd services/audit-engine && ./start.sh
 # In another terminal:
-cd solution-2-10-5 && npm install && npm run dev -- --host 127.0.0.1 --port 43205
+cd solution && npm install && npm run dev -- --host 127.0.0.1 --port 43205
 ```
 
 Open [http://127.0.0.1:43205/](http://127.0.0.1:43205/).
@@ -30,7 +30,7 @@ Open [http://127.0.0.1:43205/](http://127.0.0.1:43205/).
 
 ```bash
 cd services/audit-engine && ./test.sh
-cd ../../solution-2-10-5 && npm run lint -- --quiet && npm run build
+cd ../../solution && npm run lint -- --quiet && npm run build
 ```
 
 See [CLAIM-COMPILER.md](./CLAIM-COMPILER.md) for proof semantics, integration contracts, and deployment boundaries.
