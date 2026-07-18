@@ -1,20 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowRight,
-  BookOpenCheck,
   BrainCircuit,
   CheckCircle2,
   CircleX,
   Clock3,
-  Code2,
-  Database,
   Globe2,
-  KeyRound,
   LoaderCircle,
   RefreshCw,
   RotateCcw,
   Server,
-  ShieldCheck,
   TerminalSquare,
 } from 'lucide-react'
 import { runCompilerSelfTest } from './ClaimCompiler'
@@ -191,11 +185,7 @@ function StatusMark({ phase }: { phase: Phase }) {
   return <span className="status-mark pending" aria-label="Pending"><Clock3 size={15} /></span>
 }
 
-type SetupPageProps = {
-  onBack: () => void
-}
-
-export function SetupPage({ onBack }: SetupPageProps) {
+export function SetupPage() {
   const compilerCheck = useMemo(() => runCompilerSelfTest(), [])
   const citedSources = useMemo(() => Array.from(new Map(findings.flatMap((finding) => finding.sources).map((source) => [source.id, source])).values()), [])
   const sourceCheck = citedSources.length === 14
@@ -295,10 +285,7 @@ export function SetupPage({ onBack }: SetupPageProps) {
     <main className="setup-page">
       <section className="setup-hero">
         <div className="setup-hero-copy">
-          <span><ShieldCheck size={14} /> CLAIM COMPILER SETUP</span>
-          <h1>Core works now. Specialists plug in safely.</h1>
-          <p>Compile dossier facts into proof certificates, then use optional tools only behind typed gates.</p>
-          <button type="button" className="back-to-report" onClick={onBack}><BookOpenCheck size={14} /> Open report</button>
+          <h1>Setup</h1>
         </div>
         <div className="setup-actions">
           <button type="button" onClick={reset}><RotateCcw size={13} /> Reset</button>
@@ -312,19 +299,8 @@ export function SetupPage({ onBack }: SetupPageProps) {
         </div>
       </section>
 
-      <section className="setup-onboarding" aria-labelledby="setup-how-title">
-        <header><span>01</span><div><h2 id="setup-how-title">Two-minute workflow</h2><p>No integration is required for the dossier demo.</p></div></header>
-        <ol>
-          <li><span>1</span><div><strong>Select a claim</strong><small>Start with F-01–F-04 or inspect held X-05.</small></div></li>
-          <li><span>2</span><div><strong>Replay gates</strong><small>Facts → joins → exclusions → provenance.</small></div><ArrowRight size={13} /></li>
-          <li><span>3</span><div><strong>Open atoms</strong><small>Click any anchored atom to inspect its row or page.</small></div><ArrowRight size={13} /></li>
-          <li><span>4</span><div><strong>Edit the report</strong><small>Only a passing certificate supports report wording.</small></div><ArrowRight size={13} /></li>
-        </ol>
-      </section>
-
-      <div className="setup-middle-grid">
-        <section className="runtime-card" aria-labelledby="runtime-title">
-          <header><span><Server size={14} /></span><div><h2 id="runtime-title">This machine</h2><p>Live checks; not marketing badges.</p></div><button type="button" onClick={() => void testLocalRuntime()}><RefreshCw size={12} /> Retest</button></header>
+      <section className="runtime-card setup-runtime" aria-labelledby="runtime-title">
+          <header><span><Server size={14} /></span><div><h2 id="runtime-title">This machine</h2></div><button type="button" onClick={() => void testLocalRuntime()}><RefreshCw size={12} /> Retest</button></header>
           <div className="runtime-list">
             <RuntimeRow phase={localPhase} label="Local status bridge" detail={localCheck.detail} />
             <RuntimeRow phase={machinePhase(localStatus?.environment.codex.installed)} label="Codex CLI installed" detail={localStatus?.environment.codex.version ?? 'Waiting for local bridge'} />
@@ -333,30 +309,11 @@ export function SetupPage({ onBack }: SetupPageProps) {
             <RuntimeRow phase={machinePhase(localStatus?.environment.credentials.tavily)} label="Tavily credential configured" detail={localStatus?.environment.credentials.tavily ? 'Present on server' : 'Optional · absent'} />
             <RuntimeRow phase={cogneeBasePhase} label="Cognee base reachable" detail={!localStatus?.environment.cogneeBase.configured ? 'Optional base URL not configured' : localStatus.environment.cogneeBase.reachable === null ? 'Configured · connectivity probe disabled' : 'Connectivity only; adapter tested separately'} />
           </div>
-        </section>
-
-        <section className="security-card" aria-labelledby="security-title">
-          <header><span><KeyRound size={14} /></span><div><h2 id="security-title">Security boundary</h2><p>Keys stop at the server.</p></div></header>
-          <div className="boundary-diagram" aria-label="Integration security flow">
-            <span><Globe2 size={14} /><b>Browser</b><small>endpoint URLs</small></span>
-            <ArrowRight size={14} />
-            <span><Server size={14} /><b>Your adapter</b><small>keys + vendor calls</small></span>
-            <ArrowRight size={14} />
-            <span><Code2 size={14} /><b>JSON contract</b><small>sanitized status</small></span>
-          </div>
-          <ul>
-            <li><CheckCircle2 size={13} /><span><strong>Stored locally</strong>Only the three health endpoint URLs.</span></li>
-            <li><CheckCircle2 size={13} /><span><strong>Sent by browser</strong>Credential-free GET with cookies omitted.</span></li>
-            <li><CircleX size={13} /><span><strong>Never requested</strong>API keys, tokens, or vendor credentials.</span></li>
-            <li><ShieldCheck size={13} /><span><strong>Not enough</strong>An HTTP 200 fails unless its JSON contract matches.</span></li>
-          </ul>
-        </section>
-      </div>
+      </section>
 
       <section className="integration-section" aria-labelledby="integration-title">
         <header>
-          <div><span>02</span><div><h2 id="integration-title">Optional specialists</h2><p>Useful proposals; never sources of truth.</p></div></div>
-          <small>URLs persist in this browser · results do not</small>
+          <div><div><h2 id="integration-title">Integrations</h2></div></div>
         </header>
         <div className="integration-grid">
           {integrations.map((integration) => {
@@ -384,21 +341,16 @@ export function SetupPage({ onBack }: SetupPageProps) {
                   </button>
                 </div>
                 <div className="integration-result"><StatusMark phase={check.phase} /><span><strong>{check.phase === 'pending' ? 'Pending' : check.phase === 'checking' ? 'Checking' : check.phase === 'pass' ? 'Passed' : 'Failed'}</strong><small>{check.detail}</small></span></div>
-                <code>{integration.contract}</code>
                 <details>
-                  <summary>Account + server setup</summary>
+                  <summary>Setup</summary>
                   <ol>{integration.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+                  <code>{integration.contract}</code>
                 </details>
               </article>
             )
           })}
         </div>
       </section>
-
-      <footer className="setup-footer">
-        <span><Database size={13} /><strong>Out of box</strong>Deterministic compiler · PlateJS report · exact dossier anchors</span>
-        <span><BrainCircuit size={13} /><strong>Optional</strong>Cognee recall · Tavily corroboration · Codex challenge</span>
-      </footer>
     </main>
   )
 }

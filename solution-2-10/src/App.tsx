@@ -209,21 +209,17 @@ function App() {
         </div>
         <div className="header-actions">
           {view === 'report' && <button type="button" className="quiet-button" onClick={() => notify('Share link copied')}><Users size={15} /> Share</button>}
-          <button
+          {view === 'report' && <button
             type="button"
             className="analyze-button"
             onClick={() => {
-              if (view === 'setup') {
-                openView('report')
-                return
-              }
               setPanelOpen(true)
               setRightTab('findings')
               notify('4 certificates · 1 rejected hypothesis')
             }}
           >
-            {view === 'report' ? <RefreshCw size={14} /> : <BookOpenCheck size={14} />} {view === 'report' ? 'Compile claims' : 'Open report'}
-          </button>
+            <RefreshCw size={14} /> Compile claims
+          </button>}
         </div>
       </header>
 
@@ -349,7 +345,7 @@ function App() {
           onCopied={() => notify('Citation copied')}
         />
       ))}
-      </> : <SetupPage onBack={() => openView('report')} />}
+      </> : <SetupPage />}
       {toast && <div className="toast"><Check size={15} /> {toast}</div>}
     </div>
   )

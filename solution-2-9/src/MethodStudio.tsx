@@ -6,7 +6,6 @@ import {
   Database,
   FileSpreadsheet,
   FileText,
-  GitBranch,
   Globe2,
   Link2,
   ListChecks,
@@ -36,43 +35,31 @@ type MethodStudioProps = {
   onSource: (source: Source) => void
 }
 
-type Profile = 'precision' | 'balanced' | 'recall'
-
 const lanes = [
-  { id: 'rules', label: 'Ledger tests', detail: 'joins · totals · controls', icon: ListChecks, gate: 'always' },
-  { id: 'stats', label: 'Peer baseline', detail: 'MAD · timing · groups', icon: Activity, gate: 'always' },
-  { id: 'memory', label: 'Evidence memory', detail: 'aliases · paths · gaps', icon: Database, gate: 'linked' },
-  { id: 'web', label: 'Public checks', detail: 'official sources first', icon: Globe2, gate: 'entity' },
-  { id: 'skeptic', label: 'Local reviewer', detail: 'challenge ambiguity', icon: Scale, gate: 'gated' },
+  { id: 'rules', label: 'Tests', icon: ListChecks },
+  { id: 'stats', label: 'Baseline', icon: Activity },
+  { id: 'memory', label: 'Memory', icon: Database },
+  { id: 'web', label: 'Public', icon: Globe2 },
+  { id: 'skeptic', label: 'Review', icon: Scale },
 ] as const
 
-const routedFindings: Record<string, { lanes: string[], decision: 'Report' | 'Hold', note: string }> = {
+const routedFindings: Record<string, { lanes: string[], decision: 'Report' | 'Hold' }> = {
   'F-01': {
     lanes: ['rules', 'stats', 'memory', 'web', 'skeptic'],
     decision: 'Report',
-    note: 'Control path + payment sequence. Public lookup can corroborate the vendor, never prove the payment claim.',
   },
   'F-02': {
     lanes: ['rules', 'stats', 'memory', 'skeptic'],
     decision: 'Report',
-    note: 'Description-to-account mismatch survives the fixed-asset and financial-statement cross-check.',
   },
   'F-03': {
     lanes: ['rules', 'stats', 'memory', 'skeptic'],
     decision: 'Report',
-    note: 'Receipt and invoice chain resolves to €192,000. The unrelated accrual cannot offset it.',
   },
   'F-04': {
     lanes: ['rules', 'stats', 'memory'],
     decision: 'Report',
-    note: 'Same-day grouping crosses the approval threshold; no web or model call is needed.',
   },
-}
-
-const profiles: Record<Profile, { label: string, stop: string }> = {
-  precision: { label: 'Precision', stop: '2 internal signals' },
-  balanced: { label: 'Balanced', stop: 'route ambiguity' },
-  recall: { label: 'Recall', stop: 'challenge every lead' },
 }
 
 const categories = ['Fraud risk', 'Classification', 'Cut-off', 'Control', 'Other']
@@ -82,9 +69,7 @@ function shortName(name: string) {
 }
 
 export function MethodStudio({ sources, cases, onAdd, onSource }: MethodStudioProps) {
-  const [profile, setProfile] = useState<Profile>('balanced')
   const [selectedFinding, setSelectedFinding] = useState('F-01')
-  const [runNumber, setRunNumber] = useState(1)
   const [composerOpen, setComposerOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState(categories[0])
@@ -126,30 +111,10 @@ export function MethodStudio({ sources, cases, onAdd, onSource }: MethodStudioPr
     <section className="method-studio router-studio" aria-label="Adaptive audit router">
       <div className="method-studio-heading router-heading">
         <div>
-          <span><Route size={10} /> Adaptive router</span>
-          <strong>Cheap tests first. Escalate ambiguity.</strong>
-        </div>
-        <div className="benchmark-strip router-guardrails" aria-label="Routing guardrails">
-          <span><b>Blind</b> no labels</span>
-          <span><b>Exact</b> sources</span>
-          <span><b>Gated</b> external</span>
+          <span><Route size={10} /> Routes</span>
         </div>
         <button type="button" className="add-case-button" onClick={() => setComposerOpen(true)}>
           <Plus size={14} /> Add case
-        </button>
-      </div>
-
-      <div className="router-controls">
-        <div className="profile-switch" aria-label="Routing profile">
-          {(Object.keys(profiles) as Profile[]).map((key) => (
-            <button type="button" className={profile === key ? 'active' : ''} key={key} onClick={() => setProfile(key)}>
-              {profiles[key].label}
-            </button>
-          ))}
-        </div>
-        <span>Stop: <strong>{profiles[profile].stop}</strong></span>
-        <button type="button" className="replay-route" onClick={() => setRunNumber((value) => value + 1)}>
-          <GitBranch size={12} /> Replay · {runNumber.toString().padStart(2, '0')}
         </button>
       </div>
 
@@ -160,8 +125,7 @@ export function MethodStudio({ sources, cases, onAdd, onSource }: MethodStudioPr
             <article key={lane.id} className={selectedRoute.lanes.includes(lane.id) ? 'used' : ''}>
               <div className="lane-index">{index + 1}</div>
               <span><Icon size={14} /></span>
-              <div><strong>{lane.label}</strong><small>{lane.detail}</small></div>
-              <em>{lane.gate}</em>
+              <div><strong>{lane.label}</strong></div>
             </article>
           )
         })}
@@ -181,16 +145,10 @@ export function MethodStudio({ sources, cases, onAdd, onSource }: MethodStudioPr
               </button>
             )
           })}
-          <div className="held-lead">
-            <span><small>D-05</small><strong>Freight variance</strong></span>
-            <span className="route-dots">{lanes.map((lane) => <i className={lane.id === 'stats' ? 'hit' : ''} key={lane.id} />)}</span>
-            <b>Hold</b>
-          </div>
         </div>
 
         <article className="route-trace">
           <div><small>{selectedCase.id} · ROUTE</small><strong>{selectedCase.title}</strong></div>
-          <p>{selectedRoute.note}</p>
           <div className="trace-steps">
             {selectedRoute.lanes.map((laneId, index) => {
               const lane = lanes.find((item) => item.id === laneId)

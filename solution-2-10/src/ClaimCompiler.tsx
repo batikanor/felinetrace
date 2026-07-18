@@ -3,7 +3,6 @@ import type { FormEvent } from 'react'
 import {
   ArrowRight,
   BadgeCheck,
-  BrainCircuit,
   Check,
   CircleAlert,
   FileSearch,
@@ -11,7 +10,6 @@ import {
   FileText,
   Fingerprint,
   GitMerge,
-  Globe2,
   Link2,
   LoaderCircle,
   Play,
@@ -19,7 +17,6 @@ import {
   Search,
   ShieldAlert,
   Sigma,
-  TerminalSquare,
   X,
 } from 'lucide-react'
 import { findings, sources } from './caseData'
@@ -377,26 +374,9 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
   return (
     <section className="claim-compiler" aria-label="Claim compiler">
       <header className="compiler-header">
-        <div className="compiler-title">
-          <span><BadgeCheck size={13} /> CLAIM COMPILER · EVIDENCE PROOFS</span>
-          <h2>A claim ships only when its proof compiles.</h2>
-          <p>Typed facts in. Exact citations out.</p>
-        </div>
-        <div className="compiler-header-actions">
-          <div className="specialist-strip" aria-label="Optional gated specialists">
-            <span title="Relationship candidates only; every hit still needs provenance resolution"><BrainCircuit size={12} /><b>Cognee</b><em>gated</em></span>
-            <span title="Public corroboration only; never transaction evidence"><Globe2 size={12} /><b>Tavily</b><em>gated</em></span>
-            <span title="Challenges wording locally; cannot mint evidence"><TerminalSquare size={12} /><b>Codex</b><em>gated</em></span>
-          </div>
-          <button type="button" className="compiler-add" onClick={() => setComposerOpen(true)}><Plus size={14} /> Add case</button>
-        </div>
+        <strong>Claims</strong>
+        <button type="button" className="compiler-add" onClick={() => setComposerOpen(true)}><Plus size={14} /> Add case</button>
       </header>
-
-      <div className="compiler-guardrail">
-        <ShieldAlert size={12} />
-        <strong>Specialists may propose atoms.</strong>
-        <span>Only deterministic checks and resolved dossier anchors can sign a certificate.</span>
-      </div>
 
       <div className="claim-switcher" role="tablist" aria-label="Compiled claims">
         {proofClaims.map((claim) => (
@@ -417,16 +397,15 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
 
       <div className="compiler-toolbar">
         <div>
-          <small>PROPOSED CLAIM</small>
           <strong>{selectedClaim.title}</strong>
         </div>
         <span className={`compile-state ${compileState}`}>
           {compileState === 'running' ? <LoaderCircle size={12} className="compiler-spin" /> : <Check size={12} />}
-          {compileState === 'running' ? 'Checking gates' : `Run ${String(runNumber).padStart(2, '0')} · deterministic`}
+          {compileState === 'running' ? 'Checking' : `Checked · ${String(runNumber).padStart(2, '0')}`}
         </span>
         <button type="button" onClick={replay} disabled={compileState === 'running'}>
           {compileState === 'running' ? <LoaderCircle size={13} className="compiler-spin" /> : <Play size={13} />}
-          {compileState === 'running' ? 'Compiling' : 'Replay compilation'}
+          {compileState === 'running' ? 'Checking' : 'Run checks'}
         </button>
       </div>
 
@@ -442,7 +421,7 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
                 onClick={() => setActiveGateId(gate.id)}
               >
                 <span className="gate-icon"><Icon size={14} /></span>
-                <span><small>{gate.step} · {gateMeta[gate.id].label}</small><strong>{gate.label}</strong><em>{gate.signature}</em></span>
+                <span><small>{gate.step} · {gateMeta[gate.id].label}</small><strong>{gate.label}</strong></span>
                 <i>{gate.status === 'pass' ? <Check size={11} /> : <CircleAlert size={11} />}{gate.status === 'pass' ? 'PASS' : 'HOLD'}</i>
               </button>
               {index < selectedClaim.gates.length - 1 && <ArrowRight size={13} className="gate-arrow" />}
@@ -455,7 +434,6 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
         <div className="atom-panel">
           <div className="inspector-heading">
             <span><FileSearch size={13} /><strong>{activeGate.label} atoms</strong></span>
-            <small>{activeGate.summary}</small>
           </div>
           <div className="proof-atoms">
             {activeGate.atoms.map((atom) => {
@@ -490,7 +468,6 @@ export function ClaimCompiler({ onSource, onNotify }: ClaimCompilerProps) {
             <span><small>GATES</small><b>{selectedClaim.gates.filter((gate) => gate.status === 'pass').length}/5 pass</b></span>
             <span><small>ANCHORS</small><b>{selectedClaim.sourceIds.length} resolved</b></span>
           </div>
-          <code>{selectedClaim.certificate}</code>
         </aside>
       </div>
 
@@ -557,7 +534,7 @@ function ManualClaimDialog({ onClose, onSave }: ManualClaimDialogProps) {
     <div className="claim-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
       <section className="claim-dialog" role="dialog" aria-modal="true" aria-labelledby="manual-claim-title">
         <header>
-          <div><span><Plus size={12} /> MANUAL CASE</span><h2 id="manual-claim-title">Link a draft claim</h2><p>Choose dossier passages now; compile the proof separately.</p></div>
+          <div><span><Plus size={12} /> MANUAL CASE</span><h2 id="manual-claim-title">Link a draft claim</h2></div>
           <button type="button" onClick={onClose} aria-label="Close add case"><X size={17} /></button>
         </header>
         <form onSubmit={submit}>

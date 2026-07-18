@@ -24,82 +24,17 @@
 
 .compiler-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 15px 16px 13px;
+  min-height: 40px;
+  gap: 10px;
+  padding: 6px 10px 6px 13px;
   border-bottom: 1px solid #e3e8e4;
 }
 
-.compiler-title > span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #66538f;
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: 0.75px;
-}
-
-.compiler-title h2 {
-  margin: 5px 0 2px;
+.compiler-header > strong {
   color: #173427;
-  font: 600 18px/1.15 'Libre Franklin', sans-serif;
-  letter-spacing: -0.45px;
-}
-
-.compiler-title p {
-  margin: 0;
-  color: #7c8881;
-  font-size: 8px;
-}
-
-.compiler-header-actions {
-  display: flex;
-  align-items: stretch;
-  gap: 7px;
-}
-
-.specialist-strip {
-  display: flex;
-  gap: 4px;
-}
-
-.specialist-strip > span {
-  display: grid;
-  grid-template-columns: 17px auto;
-  grid-template-rows: auto auto;
-  align-items: center;
-  min-width: 70px;
-  padding: 6px 7px;
-  color: #4e5e55;
-  background: #f7f8f6;
-  border: 1px solid #dce2dd;
-  border-radius: 6px;
-}
-
-.specialist-strip svg {
-  grid-row: 1 / 3;
-  color: #6a5a8d;
-}
-
-.specialist-strip b,
-.specialist-strip em {
-  display: block;
-}
-
-.specialist-strip b {
-  font-size: 6px;
-}
-
-.specialist-strip em {
-  margin-top: 1px;
-  color: #9a6a48;
-  font-size: 5px;
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: 0.25px;
-  text-transform: uppercase;
+  font: 600 10px 'Libre Franklin', sans-serif;
 }
 
 .compiler-add {
@@ -119,23 +54,6 @@
 
 .compiler-add:hover {
   background: #103d2b;
-}
-
-.compiler-guardrail {
-  display: flex;
-  align-items: center;
-  min-height: 27px;
-  gap: 5px;
-  padding: 0 16px;
-  color: #696078;
-  background: #f7f5fa;
-  border-bottom: 1px solid #e6e0ee;
-  font-size: 6.3px;
-}
-
-.compiler-guardrail svg,
-.compiler-guardrail strong {
-  color: #67558f;
 }
 
 .compiler-guardrail span {
